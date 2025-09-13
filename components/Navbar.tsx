@@ -27,7 +27,7 @@ export default function Navbar() {
               Accueil
             </Link>
             <Link href="/clients" className="text-brand-gray hover:text-brand-orange transition-colors font-medium">
-              Fichier Client
+              Clients
             </Link>
             <Link href="/calendrier" className="text-brand-gray hover:text-brand-orange transition-colors font-medium">
               Calendrier

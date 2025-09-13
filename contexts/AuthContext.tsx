@@ -34,19 +34,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Vérifier l'authentification au démarrage
     useEffect(() => {
         checkAuth()
-    }, [])
+
+        // Vérifier périodiquement l'état de l'authentification (toutes les 15 minutes)
+        const interval = setInterval(() => {
+            if (user) {
+                checkAuth()
+            }
+        }, 15 * 60 * 1000) // 15 minutes
+
+        return () => clearInterval(interval)
+    }, [user])
 
     const checkAuth = async () => {
         try {
             const response = await fetch('/api/auth/me', {
-                credentials: 'include'
+                credentials: 'include',
+                // Éviter le cache pour toujours récupérer l'état actuel
+                cache: 'no-store'
             })
 
             if (response.ok) {
                 const data = await response.json()
                 setUser(data.user)
             } else {
+                // Si le token est expiré ou invalide, nettoyer l'état
                 setUser(null)
+                // Optionnel : supprimer le cookie côté client si accessible
+                if (typeof document !== 'undefined') {
+                    document.cookie = 'auth-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+                }
             }
         } catch (error) {
             console.error('Erreur lors de la vérification de l\'auth:', error)
@@ -63,6 +79,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
+            cache: 'no-store', // Éviter le cache
             body: JSON.stringify(credentials),
         })
 
@@ -80,11 +97,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
             await fetch('/api/auth/logout', {
                 method: 'POST',
                 credentials: 'include',
+                cache: 'no-store'
             })
+            console.log('Déconnexion réussie')
         } catch (error) {
             console.error('Erreur lors de la déconnexion:', error)
         } finally {
             setUser(null)
+            // Nettoyer le cookie côté client si possible
+            if (typeof document !== 'undefined') {
+                document.cookie = 'auth-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+            }
         }
     }
 

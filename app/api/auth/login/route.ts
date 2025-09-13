@@ -73,7 +73,8 @@ export async function POST(request: NextRequest) {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
-            maxAge: parseInt(process.env.MAX_AGE || '2592000')
+            path: '/',
+            maxAge: parseInt(process.env.MAX_AGE || '2592000') // 30 jours en secondes
         })
 
         return response
