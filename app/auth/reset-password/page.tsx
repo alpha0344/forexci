@@ -86,20 +86,20 @@ export default function ResetPasswordPage() {
   // Vérifier si le token est présent
   if (!token) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-brand-gray flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <XCircle className="mx-auto h-12 w-12 text-red-500" />
-            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            <XCircle className="mx-auto h-12 w-12 text-brand-red" />
+            <h2 className="mt-6 text-3xl font-extrabold text-brand-anthracite">
               Lien invalide
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-text-secondary">
               Le lien de réinitialisation de mot de passe est invalide ou a expiré.
             </p>
             <div className="mt-6">
               <Link
                 href="/"
-                className="font-medium text-blue-600 hover:text-blue-500"
+                className="link-blue font-medium"
               >
                 Retour à l'accueil
               </Link>
@@ -112,23 +112,23 @@ export default function ResetPasswordPage() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-brand-gray flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
-            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            <h2 className="mt-6 text-3xl font-extrabold text-brand-anthracite">
               Mot de passe réinitialisé !
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-text-secondary">
               Votre mot de passe a été réinitialisé avec succès. Vous êtes maintenant connecté.
             </p>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-text-muted">
               Redirection vers l'accueil dans quelques secondes...
             </p>
             <div className="mt-6">
               <Link
                 href="/"
-                className="font-medium text-blue-600 hover:text-blue-500"
+                className="link-blue font-medium"
               >
                 Accéder à l'accueil
               </Link>
@@ -140,13 +140,13 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-brand-gray flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-brand-anthracite">
             Réinitialiser votre mot de passe
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-text-secondary">
             Saisissez votre nouveau mot de passe ci-dessous
           </p>
         </div>
@@ -155,7 +155,7 @@ export default function ResetPasswordPage() {
           <div className="space-y-4">
             {/* New Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-brand-anthracite mb-2">
                 Nouveau mot de passe *
               </label>
               <div className="relative">
@@ -164,8 +164,8 @@ export default function ResetPasswordPage() {
                   id="password"
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                  className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-                    errors.password ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange transition-colors ${
+                    errors.password ? 'border-brand-red' : 'border-brand-gray-dark'
                   }`}
                   placeholder="••••••••"
                   disabled={isLoading}
@@ -173,23 +173,23 @@ export default function ResetPasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary hover:text-brand-anthracite"
                   disabled={isLoading}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                <p className="text-brand-red text-sm mt-1">{errors.password}</p>
               )}
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-text-muted mt-1">
                 Au moins 6 caractères avec une majuscule, minuscule et un chiffre
               </p>
             </div>
 
             {/* Confirm Password */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-brand-anthracite mb-2">
                 Confirmer le mot de passe *
               </label>
               <div className="relative">
@@ -198,8 +198,8 @@ export default function ResetPasswordPage() {
                   id="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-                    errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange transition-colors ${
+                    errors.confirmPassword ? 'border-brand-red' : 'border-brand-gray-dark'
                   }`}
                   placeholder="••••••••"
                   disabled={isLoading}
@@ -207,21 +207,21 @@ export default function ResetPasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary hover:text-brand-anthracite"
                   disabled={isLoading}
                 >
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+                <p className="text-brand-red text-sm mt-1">{errors.confirmPassword}</p>
               )}
             </div>
 
             {/* General Error */}
             {errors.general && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-red-700 text-sm">{errors.general}</p>
+              <div className="bg-red-50 border border-brand-red rounded-lg p-3">
+                <p className="text-brand-red-dark text-sm">{errors.general}</p>
               </div>
             )}
 
@@ -229,7 +229,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="btn-login w-full flex items-center justify-center"
             >
               {isLoading ? (
                 <>
@@ -246,7 +246,7 @@ export default function ResetPasswordPage() {
         <div className="text-center">
           <Link
             href="/"
-            className="font-medium text-blue-600 hover:text-blue-500"
+            className="link-blue font-medium"
           >
             ← Retour à l'accueil
           </Link>

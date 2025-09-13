@@ -27,16 +27,13 @@ export default function Navbar() {
               Accueil
             </Link>
             <Link href="/clients" className="text-brand-gray hover:text-brand-orange transition-colors font-medium">
-              Clients
-            </Link>
-            <Link href="/materiel" className="text-brand-gray hover:text-brand-orange transition-colors font-medium">
-              Matériel
-            </Link>
-            <Link href="/dashboard" className="text-brand-gray hover:text-brand-orange transition-colors font-medium">
-              Dashboard
+              Fichier Client
             </Link>
             <Link href="/calendrier" className="text-brand-gray hover:text-brand-orange transition-colors font-medium">
               Calendrier
+            </Link>
+            <Link href="/materiel" className="text-brand-gray hover:text-brand-orange transition-colors font-medium">
+              Matériel
             </Link>
           </div>
 

@@ -197,7 +197,7 @@ export default function LoginPage() {
                                     type="button"
                                     onClick={handleForgotPassword}
                                     disabled={resetLoading || isLoading}
-                                    className="text-sm text-brand-blue hover:text-brand-blue-light font-medium transition-colors disabled:opacity-50"
+                                    className="link-blue text-sm font-medium disabled:opacity-50"
                                 >
                                     {resetLoading ? 'Envoi...' : 'Mot de passe oublié ?'}
                                 </button>
@@ -214,7 +214,7 @@ export default function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full bg-brand-red text-white py-3 px-4 rounded-lg hover:bg-brand-red-light focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-lg font-medium shadow-brand-red"
+                                className="btn-login w-full flex items-center justify-center text-lg font-medium"
                             >
                                 {isLoading ? (
                                     <>
@@ -242,7 +242,7 @@ export default function LoginPage() {
                                     setFormData({ email: '', password: '' })
                                     setErrors({})
                                 }}
-                                className="w-full bg-brand-anthracite text-white py-3 px-4 rounded-lg hover:bg-brand-anthracite-light transition-colors"
+                                className="btn-neutral w-full"
                             >
                                 ← Retour à la connexion
                             </button>

@@ -94,6 +94,11 @@
   --shadow-brand-orange: 0 10px 15px -3px rgba(247, 127, 0, 0.15), 0 4px 6px -4px rgba(247, 127, 0, 0.1);
   --shadow-brand-blue: 0 10px 15px -3px rgba(29, 53, 87, 0.15), 0 4px 6px -4px rgba(29, 53, 87, 0.1);
 
+  /* Couleurs de bordure manquantes */
+  --border-light: #dee2e6;
+  --border-medium: #adb5bd;
+  --border-dark: var(--text-secondary);
+
   /* Rayons de bordure */
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;
@@ -110,6 +115,189 @@
   --spacing-xl: 2rem;
   --spacing-2xl: 3rem;
   --spacing-3xl: 4rem;
+}
+
+/* Classes CSS personnalisées pour être sûr que les boutons sont visibles */
+.btn-login {
+  background-color: var(--brand-red) !important;
+  color: white !important;
+  border: 2px solid var(--brand-red) !important;
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.btn-login:hover:not(:disabled) {
+  background-color: var(--brand-red-light) !important;
+  border-color: var(--brand-red-light) !important;
+  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3) !important;
+}
+
+.btn-login:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+/* Classes pour tous les boutons et liens */
+.btn-secondary {
+  background-color: var(--brand-orange) !important;
+  color: white !important;
+  border: 2px solid var(--brand-orange) !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--brand-orange-light) !important;
+  border-color: var(--brand-orange-light) !important;
+}
+
+.btn-neutral {
+  background-color: var(--brand-anthracite) !important;
+  color: white !important;
+  border: 2px solid var(--brand-anthracite) !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.btn-neutral:hover:not(:disabled) {
+  background-color: var(--brand-anthracite-light) !important;
+  border-color: var(--brand-anthracite-light) !important;
+}
+
+.link-blue {
+  color: var(--brand-blue) !important;
+  text-decoration: none !important;
+  transition: color 0.2s ease !important;
+}
+
+.link-blue:hover {
+  color: var(--brand-blue-light) !important;
+}
+
+/* Classes pour les textes et éléments de navigation */
+.text-brand-gray {
+  color: var(--brand-gray) !important;
+}
+
+.text-brand-white {
+  color: var(--brand-white) !important;
+}
+
+.text-brand-orange {
+  color: var(--brand-orange) !important;
+}
+
+.text-brand-anthracite {
+  color: var(--brand-anthracite) !important;
+}
+
+.bg-brand-anthracite {
+  background-color: var(--brand-anthracite) !important;
+}
+
+.bg-brand-anthracite-dark {
+  background-color: var(--brand-anthracite-dark) !important;
+}
+
+.bg-brand-anthracite-light {
+  background-color: var(--brand-anthracite-light) !important;
+}
+
+.bg-brand-white {
+  background-color: var(--brand-white) !important;
+}
+
+.bg-brand-gray {
+  background-color: var(--brand-gray) !important;
+}
+
+.border-brand-red {
+  border-color: var(--brand-red) !important;
+}
+
+.border-brand-gray-dark {
+  border-color: var(--brand-gray-dark) !important;
+}
+
+.shadow-brand-red {
+  box-shadow: var(--shadow-brand-red) !important;
+}
+
+/* Classes pour la page d'accueil et boutons globaux */
+.btn-primary {
+  background-color: var(--brand-red) !important;
+  color: white !important;
+  border: 2px solid var(--brand-red) !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  font-size: 1.1rem !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  display: inline-block !important;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--brand-red-light) !important;
+  border-color: var(--brand-red-light) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(230, 57, 70, 0.4) !important;
+}
+
+/* Card styles */
+.card {
+  background-color: var(--brand-white) !important;
+  padding: 2rem !important;
+  border-radius: 16px !important;
+  border: 1px solid var(--border-light) !important;
+  box-shadow: var(--shadow-md) !important;
+  transition: all 0.3s ease !important;
+}
+
+.card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.card-accent {
+  border-left: 4px solid var(--brand-orange) !important;
+}
+
+/* Texte de marque moderne */
+.text-brand-red-orange {
+  color: var(--brand-red) !important;
+}
+
+/* Classes pour textes */
+.text-text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-text-muted {
+  color: var(--text-muted) !important;
+}
+
+.text-text-primary {
+  color: var(--text-primary) !important;
+}
+
+/* Classes manquantes pour une transition parfaite */
+.text-primary {
+  color: var(--text-primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
 }
 
 /* ============================================
