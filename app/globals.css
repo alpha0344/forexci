@@ -9,72 +9,90 @@
    ============================================ */
 
 :root {
-  /* Palette principale */
-  --primary-yellow: #FCEF91;
-  --primary-orange: #FB9E3A;
-  --primary-red-orange: #E6521F;
-  --primary-red: #EA2F14;
+  /* ============================================
+     NOUVELLE PALETTE FOREXCI (MODERNE + SÉCURITÉ)
+     ============================================ */
+  
+  /* Rouge pompier (accent principal, énergie, urgence) */
+  --brand-red: #E63946;
+  --brand-red-light: #ea5964;
+  --brand-red-dark: #d32f3c;
 
-  /* Couleurs dérivées pour les états */
-  --primary-yellow-light: #fdf6c4;
-  --primary-yellow-dark: #f9e86a;
-  --primary-orange-light: #fcb366;
-  --primary-orange-dark: #f98a14;
-  --primary-red-orange-light: #ed7146;
-  --primary-red-orange-dark: #d63f0f;
-  --primary-red-light: #ef4f2f;
-  --primary-red-dark: #d11f09;
+  /* Orange sécurité (secondaire, dynamisme, chaleur) */
+  --brand-orange: #F77F00;
+  --brand-orange-light: #f8951a;
+  --brand-orange-dark: #e06f00;
 
-  /* Couleurs neutres */
-  --neutral-white: #ffffff;
-  --neutral-gray-50: #f9fafb;
-  --neutral-gray-100: #f3f4f6;
-  --neutral-gray-200: #e5e7eb;
-  --neutral-gray-300: #d1d5db;
-  --neutral-gray-400: #9ca3af;
-  --neutral-gray-500: #6b7280;
-  --neutral-gray-600: #4b5563;
-  --neutral-gray-700: #374151;
-  --neutral-gray-800: #1f2937;
-  --neutral-gray-900: #111827;
-  --neutral-black: #000000;
+  /* Gris anthracite (fond sombre, sérieux, pro) */
+  --brand-anthracite: #2B2D42;
+  --brand-anthracite-light: #3d3f5c;
+  --brand-anthracite-dark: #1e1f2e;
 
-  /* Couleurs fonctionnelles */
-  --success: #10b981;
-  --success-light: #34d399;
-  --success-dark: #059669;
-  --warning: var(--primary-orange);
-  --warning-light: var(--primary-orange-light);
-  --warning-dark: var(--primary-orange-dark);
-  --error: var(--primary-red);
-  --error-light: var(--primary-red-light);
-  --error-dark: var(--primary-red-dark);
-  --info: #3b82f6;
-  --info-light: #60a5fa;
-  --info-dark: #2563eb;
+  /* Gris clair (contraste, lisibilité) */
+  --brand-gray: #EDF2F4;
+  --brand-gray-light: #f5f8fa;
+  --brand-gray-dark: #dde6e9;
 
-  /* Couleurs de texte */
-  --text-primary: var(--neutral-gray-900);
-  --text-secondary: var(--neutral-gray-600);
-  --text-muted: var(--neutral-gray-500);
-  --text-inverse: var(--neutral-white);
+  /* Blanc cassé (background clair, neutralité) */
+  --brand-white: #F8F9FA;
+  --brand-white-light: #ffffff;
+  --brand-white-dark: #e9ecef;
 
-  /* Couleurs de fond */
-  --bg-primary: var(--neutral-white);
-  --bg-secondary: var(--neutral-gray-50);
-  --bg-tertiary: var(--neutral-gray-100);
-  --bg-accent: var(--primary-yellow);
+  /* Bleu confiance (optionnel, pour boutons ou éléments rassurants) */
+  --brand-blue: #1D3557;
+  --brand-blue-light: #3a5a7a;
+  --brand-blue-dark: #0f1d2e;
 
+  /* ============================================
+     COULEURS FONCTIONNELLES (ADAPTÉES)
+     ============================================ */
+  --success: #198754;
+  --success-light: #28a745;
+  --success-dark: #146c43;
+  --warning: var(--brand-orange);
+  --warning-light: var(--brand-orange-light);
+  --warning-dark: var(--brand-orange-dark);
+  --error: var(--brand-red);
+  --error-light: var(--brand-red-light);
+  --error-dark: var(--brand-red-dark);
+  --info: var(--brand-blue);
+  --info-light: var(--brand-blue-light);
+  --info-dark: var(--brand-blue-dark);
+
+  /* ============================================
+     COULEURS DE TEXTE (ADAPTÉES)
+     ============================================ */
+  --text-primary: var(--brand-anthracite);
+  --text-secondary: #6C757D;
+  --text-muted: #868e96;
+  --text-inverse: var(--brand-white);
+
+  /* ============================================
+     COULEURS DE FOND
+     ============================================ */
+  --bg-primary: var(--brand-white);
+  --bg-secondary: var(--brand-gray);
+  --bg-dark: var(--brand-anthracite);
+  --bg-accent: var(--brand-orange);
+
+  /* ============================================
+     AUTRES VARIABLES (CONSERVÉES)
+     ============================================ */
   /* Couleurs de bordure */
-  --border-light: var(--neutral-gray-200);
-  --border-medium: var(--neutral-gray-300);
-  --border-dark: var(--neutral-gray-400);
+  --border-light: #dee2e6;
+  --border-medium: #adb5bd;
+  --border-dark: var(--text-secondary);
 
   /* Ombres */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* Ombres avec couleurs de marque */
+  --shadow-brand-red: 0 10px 15px -3px rgba(230, 57, 70, 0.15), 0 4px 6px -4px rgba(230, 57, 70, 0.1);
+  --shadow-brand-orange: 0 10px 15px -3px rgba(247, 127, 0, 0.15), 0 4px 6px -4px rgba(247, 127, 0, 0.1);
+  --shadow-brand-blue: 0 10px 15px -3px rgba(29, 53, 87, 0.15), 0 4px 6px -4px rgba(29, 53, 87, 0.1);
 
   /* Rayons de bordure */
   --radius-sm: 0.25rem;

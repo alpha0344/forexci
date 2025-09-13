@@ -109,39 +109,39 @@ export default function LoginPage() {
     // Afficher un loader pendant la vérification d'auth
     if (authLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="min-h-screen flex items-center justify-center bg-brand-gray">
                 <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600" />
-                    <p className="text-gray-600 mt-2">Vérification...</p>
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-brand-red" />
+                    <p className="text-text-secondary mt-2">Vérification...</p>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen flex items-center justify-center bg-brand-gray py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8">
                 {/* Header */}
                 <div className="text-center">
-                    <h1 className="text-3xl font-bold text-brand-red-orange mb-2">Forexci</h1>
-                    <h2 className="text-2xl font-semibold text-gray-900">
+                    <h1 className="text-3xl font-bold text-brand-red mb-2">Forexci</h1>
+                    <h2 className="text-2xl font-semibold text-brand-anthracite">
                         {isResetMode ? 'Email envoyé' : 'Connexion à votre compte'}
                     </h2>
                     {!isResetMode && (
-                        <p className="text-gray-600 mt-2">
+                        <p className="text-text-secondary mt-2">
                             Accédez à votre tableau de bord
                         </p>
                     )}
                 </div>
 
                 {/* Form Card */}
-                <div className="bg-white shadow-xl rounded-lg p-8">
+                <div className="bg-brand-white shadow-brand-red rounded-lg p-8 border border-brand-red">
                     {!isResetMode ? (
                         // Mode connexion normale
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Email */}
                             <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                                <label htmlFor="email" className="block text-sm font-medium text-brand-anthracite mb-2">
                                     Adresse email
                                 </label>
                                 <input
@@ -149,20 +149,20 @@ export default function LoginPage() {
                                     id="email"
                                     value={formData.email}
                                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-                                        errors.email ? 'border-red-500' : 'border-gray-300'
+                                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange transition-colors ${
+                                        errors.email ? 'border-brand-red' : 'border-brand-gray-dark'
                                     }`}
                                     placeholder="votre.email@exemple.com"
                                     disabled={isLoading}
                                 />
                                 {errors.email && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                                    <p className="text-brand-red text-sm mt-1">{errors.email}</p>
                                 )}
                             </div>
 
                             {/* Password */}
                             <div>
-                                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                                <label htmlFor="password" className="block text-sm font-medium text-brand-anthracite mb-2">
                                     Mot de passe
                                 </label>
                                 <div className="relative">
@@ -171,8 +171,8 @@ export default function LoginPage() {
                                         id="password"
                                         value={formData.password}
                                         onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                                        className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-                                            errors.password ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange transition-colors ${
+                                            errors.password ? 'border-brand-red' : 'border-brand-gray-dark'
                                         }`}
                                         placeholder="••••••••"
                                         disabled={isLoading}
@@ -180,14 +180,14 @@ export default function LoginPage() {
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary hover:text-brand-anthracite"
                                         disabled={isLoading}
                                     >
                                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                     </button>
                                 </div>
                                 {errors.password && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                                    <p className="text-brand-red text-sm mt-1">{errors.password}</p>
                                 )}
                             </div>
 
@@ -197,7 +197,7 @@ export default function LoginPage() {
                                     type="button"
                                     onClick={handleForgotPassword}
                                     disabled={resetLoading || isLoading}
-                                    className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors disabled:opacity-50"
+                                    className="text-sm text-brand-blue hover:text-brand-blue-light font-medium transition-colors disabled:opacity-50"
                                 >
                                     {resetLoading ? 'Envoi...' : 'Mot de passe oublié ?'}
                                 </button>
@@ -205,8 +205,8 @@ export default function LoginPage() {
 
                             {/* General Error */}
                             {errors.general && (
-                                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                                    <p className="text-red-700 text-sm">{errors.general}</p>
+                                <div className="bg-red-50 border border-brand-red rounded-lg p-4">
+                                    <p className="text-brand-red-dark text-sm">{errors.general}</p>
                                 </div>
                             )}
 
@@ -214,7 +214,7 @@ export default function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-lg font-medium"
+                                className="w-full bg-brand-red text-white py-3 px-4 rounded-lg hover:bg-brand-red-light focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-lg font-medium shadow-brand-red"
                             >
                                 {isLoading ? (
                                     <>
@@ -232,7 +232,7 @@ export default function LoginPage() {
                             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                                 <p className="text-green-700">{resetMessage}</p>
                             </div>
-                            <p className="text-gray-600">
+                            <p className="text-text-secondary">
                                 Vérifiez votre boîte email et suivez les instructions pour réinitialiser votre mot de passe.
                             </p>
                             <button
@@ -242,7 +242,7 @@ export default function LoginPage() {
                                     setFormData({ email: '', password: '' })
                                     setErrors({})
                                 }}
-                                className="w-full bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors"
+                                className="w-full bg-brand-anthracite text-white py-3 px-4 rounded-lg hover:bg-brand-anthracite-light transition-colors"
                             >
                                 ← Retour à la connexion
                             </button>
@@ -252,7 +252,7 @@ export default function LoginPage() {
                     {/* Account info */}
                     {!isResetMode && (
                         <div className="mt-6 text-center">
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-text-secondary">
                                 Besoin d'un compte ? Contactez votre administrateur.
                             </p>
                         </div>
