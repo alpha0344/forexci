@@ -24,13 +24,58 @@ export default function LoginModal({
     })
     const [showPassword, setShowPassword] = useState(false)
     const [errors, setErrors] = useState<Record<string, string>>({})
+    const [isResetMode, setIsResetMode] = useState(false)
+    const [resetLoading, setResetLoading] = useState(false)
+    const [resetMessage, setResetMessage] = useState('')
 
     // Reset form when modal opens/closes
     const handleClose = () => {
         setFormData({ email: '', password: '' })
         setErrors({})
         setShowPassword(false)
+        setIsResetMode(false)
+        setResetLoading(false)
+        setResetMessage('')
         onClose()
+    }
+
+    // Gérer la demande de mot de passe oublié
+    const handleForgotPassword = async () => {
+        if (!formData.email) {
+            setErrors({ email: 'Veuillez saisir votre email' })
+            return
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            setErrors({ email: 'Format d\'email invalide' })
+            return
+        }
+
+        setResetLoading(true)
+        setErrors({})
+
+        try {
+            const response = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: formData.email }),
+            })
+
+            const data = await response.json()
+
+            if (response.ok) {
+                setResetMessage(data.message || 'Un email de réinitialisation a été envoyé.')
+                setIsResetMode(true)
+            } else {
+                setErrors({ general: data.error || 'Erreur lors de la demande' })
+            }
+        } catch (error) {
+            setErrors({ general: 'Erreur de connexion' })
+        } finally {
+            setResetLoading(false)
+        }
     }
 
     // Validation côté client
@@ -93,94 +138,131 @@ export default function LoginModal({
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Email */}
-                    <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            value={formData.email}
-                            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${errors.email ? 'border-red-500' : 'border-gray-300'
-                                }`}
-                            placeholder="votre.email@exemple.com"
-                            disabled={isLoading}
-                        />
-                        {errors.email && (
-                            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                        )}
-                    </div>
-
-                    {/* Password */}
-                    <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                            Mot de passe
-                        </label>
-                        <div className="relative">
+                {!isResetMode ? (
+                    // Mode connexion normale
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Email */}
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                                Email
+                            </label>
                             <input
-                                type={showPassword ? 'text' : 'password'}
-                                id="password"
-                                value={formData.password}
-                                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                                className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${errors.password ? 'border-red-500' : 'border-gray-300'
+                                type="email"
+                                id="email"
+                                value={formData.email}
+                                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${errors.email ? 'border-red-500' : 'border-gray-300'
                                     }`}
-                                placeholder="••••••••"
+                                placeholder="votre.email@exemple.com"
                                 disabled={isLoading}
                             />
+                            {errors.email && (
+                                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                            )}
+                        </div>
+
+                        {/* Password */}
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                                Mot de passe
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    id="password"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                                    className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${errors.password ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                    placeholder="••••••••"
+                                    disabled={isLoading}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    disabled={isLoading}
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                            {errors.password && (
+                                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                            )}
+                        </div>
+
+                        {/* Forgot Password Link */}
+                        <div className="text-right">
                             <button
                                 type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                disabled={isLoading}
+                                onClick={handleForgotPassword}
+                                disabled={resetLoading || isLoading}
+                                className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors disabled:opacity-50"
                             >
-                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                {resetLoading ? 'Envoi...' : 'Mot de passe oublié ?'}
                             </button>
                         </div>
-                        {errors.password && (
-                            <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+
+                        {/* General Error */}
+                        {errors.general && (
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                                <p className="text-red-700 text-sm">{errors.general}</p>
+                            </div>
                         )}
-                    </div>
 
-                    {/* General Error */}
-                    {errors.general && (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                            <p className="text-red-700 text-sm">{errors.general}</p>
-                        </div>
-                    )}
-
-                    {/* Submit Button */}
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                    >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Connexion...
-                            </>
-                        ) : (
-                            'Se connecter'
-                        )}
-                    </button>
-                </form>
-
-                {/* Switch to Signup */}
-                <div className="mt-6 text-center">
-                    <p className="text-sm text-gray-600">
-                        Pas encore de compte ?{' '}
+                        {/* Submit Button */}
                         <button
-                            onClick={onSwitchToSignup}
-                            className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                            type="submit"
                             disabled={isLoading}
+                            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                         >
-                            Créer un compte
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Connexion...
+                                </>
+                            ) : (
+                                'Se connecter'
+                            )}
                         </button>
-                    </p>
-                </div>
+                    </form>
+                ) : (
+                    // Mode réinitialisation réussie
+                    <div className="text-center space-y-4">
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <p className="text-green-700 text-sm">{resetMessage}</p>
+                        </div>
+                        <p className="text-sm text-gray-600">
+                            Vérifiez votre boîte email et suivez les instructions pour réinitialiser votre mot de passe.
+                        </p>
+                        <button
+                            onClick={() => {
+                                setIsResetMode(false)
+                                setResetMessage('')
+                                setFormData({ email: '', password: '' })
+                            }}
+                            className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                        >
+                            ← Retour à la connexion
+                        </button>
+                    </div>
+                )}
+
+                {/* Switch to Signup - Only show in login mode */}
+                {!isResetMode && (
+                    <div className="mt-6 text-center">
+                        <p className="text-sm text-gray-600">
+                            Pas encore de compte ?{' '}
+                            <button
+                                onClick={onSwitchToSignup}
+                                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                                disabled={isLoading}
+                            >
+                                Créer un compte
+                            </button>
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     )

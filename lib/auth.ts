@@ -14,7 +14,7 @@ export interface JWTPayload {
 // Générer un token JWT (valable 30 jours)
 export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
     return jwt.sign(payload, JWT_SECRET, {
-        expiresIn: '30d'
+        expiresIn: process.env.EXPIRES_IN || '30d'
     })
 }
 
