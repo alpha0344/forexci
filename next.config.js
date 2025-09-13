@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
+  // L'App Router est maintenant par défaut dans Next.js 14
 }
 
 module.exports = nextConfig

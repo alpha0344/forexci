@@ -1,5 +1,6 @@
 import './globals.css'
 import { Poppins } from 'next/font/google'
+import { AuthProvider } from '../contexts/AuthContext'
 import Navbar from '../components/navbar'
 
 const poppins = Poppins({ 
@@ -9,8 +10,8 @@ const poppins = Poppins({
 })
 
 export const metadata = {
-  title: 'ForexCI - Trading Platform',
-  description: 'Plateforme de trading Forex moderne',
+  title: 'Forexci',
+  description: 'Plateforme de gestion interne',
 }
 
 export default function RootLayout({
@@ -21,8 +22,10 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={poppins.className}>
-        <Navbar />
-        <main>{children}</main>
+        <AuthProvider>
+          <Navbar />
+          <main>{children}</main>
+        </AuthProvider>
       </body>
     </html>
   )

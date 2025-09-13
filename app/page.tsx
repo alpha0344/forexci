@@ -7,7 +7,7 @@ export default function HomePage() {
             Bienvenue sur <span className="text-brand-red-orange">ForexCI</span>
           </h1>
           <p className="text-xl text-secondary mb-8 max-w-2xl mx-auto font-medium">
-            Votre plateforme de gestion d'entreprise moderne et intuitive. 
+            Votre plateforme de gestion d'entreprise moderne et intuitive.
             Gérez vos clients, votre matériel et optimisez vos processus.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -19,7 +19,7 @@ export default function HomePage() {
             </button>
           </div>
         </div>
-        
+
         <div className="mt-20 grid md:grid-cols-3 gap-8">
           <div className="card card-accent animate-fade-in">
             <div className="text-brand-orange text-4xl mb-4">�</div>
@@ -28,7 +28,7 @@ export default function HomePage() {
               Gérez facilement votre fichier client avec recherche avancée, filtres et historique complet des interactions.
             </p>
           </div>
-          
+
           <div className="card animate-fade-in">
             <div className="text-brand-red-orange text-4xl mb-4">�</div>
             <h3 className="text-xl font-semibold mb-3 text-primary">Matériel & Équipements</h3>
@@ -36,7 +36,7 @@ export default function HomePage() {
               Suivez et gérez tout votre matériel avec des rappels automatiques et un système de maintenance intégré.
             </p>
           </div>
-          
+
           <div className="card animate-fade-in">
             <div className="text-brand-red text-4xl mb-4">📊</div>
             <h3 className="text-xl font-semibold mb-3 text-primary">Dashboard Intelligent</h3>
