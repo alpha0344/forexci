@@ -15,11 +15,6 @@ interface AuthContextType {
     isLoading: boolean
     isAuthenticated: boolean
     login: (credentials: { email: string; password: string }) => Promise<void>
-    signup: (data: {
-        email: string
-        password: string
-        fullName: string
-    }) => Promise<void>
     logout: () => Promise<void>
     refreshUser: () => Promise<void>
 }
@@ -80,29 +75,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(data.user)
     }
 
-    const signup = async (signupData: {
-        email: string
-        password: string
-        fullName: string
-    }) => {
-        const response = await fetch('/api/auth/signup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(signupData),
-        })
-
-        const data = await response.json()
-
-        if (!response.ok) {
-            throw new Error(data.error || 'Erreur lors de la création du compte')
-        }
-
-        setUser(data.user)
-    }
-
     const logout = async () => {
         try {
             await fetch('/api/auth/logout', {
@@ -125,7 +97,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         isLoading,
         isAuthenticated,
         login,
-        signup,
         logout,
         refreshUser,
     }

@@ -1,7 +1,7 @@
 import './globals.css'
 import { Poppins } from 'next/font/google'
 import { AuthProvider } from '../contexts/AuthContext'
-import Navbar from '../components/navbar'
+import AuthGuard from '../components/AuthGuard'
 
 const poppins = Poppins({ 
   subsets: ['latin'],
@@ -23,8 +23,9 @@ export default function RootLayout({
     <html lang="fr">
       <body className={poppins.className}>
         <AuthProvider>
-          <Navbar />
-          <main>{children}</main>
+          <AuthGuard>
+            <main>{children}</main>
+          </AuthGuard>
         </AuthProvider>
       </body>
     </html>
