@@ -1,7 +1,12 @@
 import './globals.css'
-import { Inter } from 'next/font/google'
+import { Poppins } from 'next/font/google'
+import Navbar from '../components/navbar'
 
-const inter = Inter({ subsets: ['latin'] })
+const poppins = Poppins({ 
+  subsets: ['latin'],
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-poppins'
+})
 
 export const metadata = {
   title: 'ForexCI - Trading Platform',
@@ -15,7 +20,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className={inter.className}>{children}</body>
+      <body className={poppins.className}>
+        <Navbar />
+        <main>{children}</main>
+      </body>
     </html>
   )
 }

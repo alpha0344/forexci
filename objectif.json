@@ -1,0 +1,60 @@
+{
+  "version": "V0",
+  "title": "Site entreprise - Gestion clients / matériel / actions",
+  "description": "Site web responsive (desktop / tablette / mobile) pour gérer clients, matériel, calendrier et historique d'actions. Comprend authentification (création de compte + connexion) sans page profil. Livrable V0 : maquettage + structure front-end (pages, composants) + schéma API et données mock.",
+  "primary_goals": [
+    "Permettre la gestion du fichier client (listing, recherche, filtres, détail client).",
+    "Gérer les matériels liés aux clients (ajout / modification / suppression / règles de rappel).",
+    "Afficher un dashboard synthétique avec KPI et actions à réaliser.",
+    "Fournir un calendrier des actions.",
+    "Conserver un historique filtrable des actions réalisées.",
+    "Système d'authentification (signup, login) ; pas de page profil."
+  ],
+  "devices_and_responsiveness": { ... },
+  "pages": [
+    { ... },
+    {
+      "name": "Auth - Connexion / Création de compte",
+      "path": ["/signup", "/login"],
+      "purpose": "Système de comptes élémentaire (signup + login). Pas de page profil. Le login existe mais n'est pas obligatoire pour accéder aux autres pages.",
+      "components": [
+        {"type": "Signup_form", "fields": ["nom entreprise", "email", "mot de passe", "confirmation mot de passe", "role (optionnel)"], "behaviour": "validation côté client + serveur"},
+        {"type": "Login_form", "fields": ["email", "mot de passe"], "behaviour": "JWT ou session, remember me optionnel"},
+        {"type": "Auth_guard", "behaviour": "Non activé par défaut : les pages restent accessibles sans login"}
+      ],
+      "security_notes": [
+        "Mots de passe stockés hachés côté serveur (bcrypt ou équivalent).",
+        "Protections basiques CSRF, XSS et validation d'entrée."
+      ],
+      "acceptance_criteria": [
+        "Un utilisateur peut créer un compte et se connecter s'il le souhaite.",
+        "Le site reste accessible aux utilisateurs non connectés."
+      ]
+    }
+  ],
+  "data_model": { ... },
+  "api_and_endpoints_examples": [
+    {"method": "POST", "path": "/api/auth/signup"},
+    {"method": "POST", "path": "/api/auth/login"}
+  ],
+  "ui_and_design_guidelines": { ... },
+  "functional_behaviours": { ... },
+  "mock_data_examples": { ... },
+  "deliverables_for_v0": [ ... ],
+  "constraints_and_exclusions": [
+    "Pas de page profil utilisateur à créer.",
+    "Pas de redirection forcée vers /login : les pages internes restent accessibles sans authentification.",
+    "V0 ne comprend pas l'envoi réel de SMS/email (prévoir hooks/mock).",
+    "Sécurité : implémentation basique pour V0 — audits et durcissements en phases ultérieures."
+  ],
+  "acceptance_criteria_general": [
+    "Le site est fully responsive aux breakpoints définis.",
+    "Toutes les pages listées existent et sont navigables (avec données mock).",
+    "Recherche et filtres fonctionnels sur la liste clients.",
+    "Fiche client complète avec gestion du matériel (ajout/modif/supp).",
+    "Dashboard avec KPI affichant des données mock cohérentes.",
+    "Auth (signup/login) disponibles mais non obligatoires pour l'accès au site."
+  ],
+  "recommended_tech_stack": { ... },
+  "notes_for_devs": "Prioriser la navigation, la lisibilité des statuts (couleurs) et la robustesse de la recherche/filtrage. Auth non bloquante : login implémenté mais navigation libre."
+}
