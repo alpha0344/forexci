@@ -7,6 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Énumérations pour les types de matériel
+enum MaterialType {
+  PA      // Pression Auxiliaire
+  PP      // Pression permanente
+  ALARM   // Alarme
+}
+
 model User {
   id                 String   @id @default(uuid())
   email              String   @unique
@@ -19,4 +26,12 @@ model User {
   lastLoginAt        DateTime?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+}
+
+model Material {
+  id                    String       @id @default(uuid())
+  type                  MaterialType // Type de matériel (PA, PP, ALARM)
+  validityTime          Int          // Temps avant changement/maintenance de la pièce
+  timeBeforeControl     Int          // Temps en jours avant contrôle obligatoire
+  timeBeforeReload      Int?         // Temps avant le changement de produit (optionnel)
 }

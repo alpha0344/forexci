@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hacher le nouveau mot de passe
-    const passwordHash = await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS))
+    const passwordHash = await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS || '10'))
 
     // Mettre à jour l'utilisateur
     await prisma.user.update({

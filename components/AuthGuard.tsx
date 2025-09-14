@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Loader2 } from 'lucide-react'
-import Navbar from './navbar'
+import Navbar from './Navbar'
 
 interface AuthGuardProps {
     children: React.ReactNode

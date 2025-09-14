@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import { NextRequest } from 'next/server'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key'
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-for-development'
 
 export interface JWTPayload {
     userId: string
@@ -13,9 +13,9 @@ export interface JWTPayload {
 
 // Générer un token JWT (valable 30 jours)
 export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
-    return jwt.sign(payload, JWT_SECRET, {
+    return jwt.sign(payload, JWT_SECRET as string, {
         expiresIn: process.env.EXPIRES_IN || '30d'
-    })
+    } as jwt.SignOptions)
 }
 
 // Vérifier et décoder un token JWT
