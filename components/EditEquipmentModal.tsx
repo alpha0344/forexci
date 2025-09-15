@@ -199,9 +199,15 @@ export default function EditEquipmentModal({
       const submitData: any = {
         number: parseInt(formData.number),
         commissioningDate: new Date(formData.commissioningDate).toISOString(),
-        lastVerificationDate: new Date(formData.lastVerificationDate).toISOString(),
-        notes: formData.notes.trim() || null
+        lastVerificationDate: formData.lastVerificationDate ? new Date(formData.lastVerificationDate).toISOString() : null,
       };
+
+      // Ajouter notes seulement si non vide
+      if (formData.notes.trim()) {
+        submitData.notes = formData.notes.trim();
+      } else {
+        submitData.notes = null;
+      }
 
       // Ajouter les champs spécifiques selon le type
       switch (equipment.material.type) {
@@ -214,8 +220,8 @@ export default function EditEquipmentModal({
 
         case 'PA':
           submitData.volume = parseInt(formData.volume);
-          submitData.lastRechargeDate = new Date(formData.lastRechargeDate).toISOString();
-          submitData.rechargeType = formData.rechargeType;
+          submitData.lastRechargeDate = formData.lastRechargeDate ? new Date(formData.lastRechargeDate).toISOString() : null;
+          submitData.rechargeType = formData.rechargeType || null;
           break;
 
         case 'ALARM':

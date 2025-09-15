@@ -7,12 +7,12 @@ const prisma = new PrismaClient();
 // Schéma de validation pour la mise à jour d'un équipement
 const updateEquipmentSchema = z.object({
   number: z.number().int().positive('Le numéro doit être un entier positif').optional(),
-  commissioningDate: z.string().datetime('Date de mise en service invalide').optional(),
-  lastVerificationDate: z.string().datetime().optional(),
-  lastRechargeDate: z.string().datetime().optional(),
-  rechargeType: z.enum(['WATER_ADD', 'POWDER']).optional(),
-  volume: z.number().int().positive().optional(),
-  notes: z.string().max(500, 'Les notes ne peuvent pas dépasser 500 caractères').optional()
+  commissioningDate: z.string().refine((date) => !isNaN(Date.parse(date)), 'Date de mise en service invalide').optional(),
+  lastVerificationDate: z.string().refine((date) => !isNaN(Date.parse(date)), 'Date de dernier contrôle invalide').optional().nullable(),
+  lastRechargeDate: z.string().refine((date) => !isNaN(Date.parse(date)), 'Date de dernière recharge invalide').optional().nullable(),
+  rechargeType: z.enum(['WATER_ADD', 'POWDER']).optional().nullable(),
+  volume: z.number().int().positive().optional().nullable(),
+  notes: z.string().max(500, 'Les notes ne peuvent pas dépasser 500 caractères').optional().nullable()
 });
 
 /**
@@ -117,16 +117,24 @@ export async function PUT(
     const dataToUpdate: any = {};
 
     if (updateData.number !== undefined) dataToUpdate.number = updateData.number;
-    if (updateData.commissioningDate) dataToUpdate.commissioningDate = new Date(updateData.commissioningDate);
+    if (updateData.commissioningDate !== undefined) {
+      dataToUpdate.commissioningDate = new Date(updateData.commissioningDate);
+    }
     if (updateData.lastVerificationDate !== undefined) {
       dataToUpdate.lastVerificationDate = updateData.lastVerificationDate ? new Date(updateData.lastVerificationDate) : null;
     }
     if (updateData.lastRechargeDate !== undefined) {
       dataToUpdate.lastRechargeDate = updateData.lastRechargeDate ? new Date(updateData.lastRechargeDate) : null;
     }
-    if (updateData.rechargeType !== undefined) dataToUpdate.rechargeType = updateData.rechargeType || null;
-    if (updateData.volume !== undefined) dataToUpdate.volume = updateData.volume || null;
-    if (updateData.notes !== undefined) dataToUpdate.notes = updateData.notes?.trim() || null;
+    if (updateData.rechargeType !== undefined) {
+      dataToUpdate.rechargeType = updateData.rechargeType || null;
+    }
+    if (updateData.volume !== undefined) {
+      dataToUpdate.volume = updateData.volume || null;
+    }
+    if (updateData.notes !== undefined) {
+      dataToUpdate.notes = updateData.notes?.trim() || null;
+    }
 
     // Mettre à jour l'équipement
     const updatedEquipment = await prisma.clientEquipment.update({

@@ -16,6 +16,7 @@ import {
 import EditClientModal from '@/components/EditClientModal';
 import AddEquipmentModal from '@/components/AddEquipmentModal';
 import EditEquipmentModal from '@/components/EditEquipmentModal';
+import UpdateVerificationModal from '@/components/UpdateVerificationModal';
 
 // Types basés sur votre schéma Prisma
 interface Material {
@@ -167,6 +168,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddEquipmentModalOpen, setIsAddEquipmentModalOpen] = useState(false);
   const [isEditEquipmentModalOpen, setIsEditEquipmentModalOpen] = useState(false);
+  const [isUpdateVerificationModalOpen, setIsUpdateVerificationModalOpen] = useState(false);
   const [equipmentToEdit, setEquipmentToEdit] = useState<ClientEquipment | null>(null);
 
   // Charger les données du client
@@ -245,6 +247,15 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
         )
       });
     }
+  };
+
+  const handleUpdateVerifications = () => {
+    setIsUpdateVerificationModalOpen(true);
+  };
+
+  const handleVerificationUpdated = () => {
+    // Recharger les données du client pour avoir les dernières mises à jour
+    fetchClient();
   };
 
   const handleDeleteEquipment = async (equipmentId: string) => {
@@ -395,6 +406,31 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
           <ClientInfoCard client={client} onEdit={handleEditClient} />
         </div>
 
+        {/* Bouton de mise à jour des vérifications */}
+        {client.equipments.length > 0 && (
+          <div className="mb-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-1">
+                    Mise à jour des vérifications
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Mettre à jour la date de dernière vérification de tous les équipements en une seule fois
+                  </p>
+                </div>
+                <button
+                  onClick={handleUpdateVerifications}
+                  className="inline-flex items-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
+                >
+                  <CalendarIcon className="h-4 w-4 mr-2" />
+                  Mettre à jour toutes les vérifications
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Statistiques des équipements */}
         <div className="mb-8">
           <EquipmentStats equipments={client.equipments} />
@@ -525,6 +561,15 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
         }}
         equipment={equipmentToEdit}
         onEquipmentUpdated={handleEquipmentUpdated}
+      />
+
+      <UpdateVerificationModal
+        isOpen={isUpdateVerificationModalOpen}
+        onClose={() => setIsUpdateVerificationModalOpen(false)}
+        clientId={params.id}
+        clientName={client.name}
+        equipments={client.equipments}
+        onVerificationUpdated={handleVerificationUpdated}
       />
     </div>
   );
