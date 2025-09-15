@@ -254,8 +254,16 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   };
 
   const handleVerificationUpdated = () => {
-    // Recharger les données du client pour avoir les dernières mises à jour
+    // Ne pas recharger les données pendant que le modal est ouvert
+    // Le modal gère son propre état et rechargera à la fin
+    // Cette fonction peut être appelée pour d'autres actions si nécessaire
+    console.log('Verification updated - modal en cours');
+  };
+
+  const handleVerificationCompleted = () => {
+    // Recharger les données du client après fermeture complète du modal
     fetchClient();
+    setIsUpdateVerificationModalOpen(false);
   };
 
   const handleDeleteEquipment = async (equipmentId: string) => {
@@ -410,7 +418,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
         {client.equipments.length > 0 && (
           <div className="mb-8">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-1">
                     Mise à jour des vérifications
@@ -565,7 +573,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
 
       <UpdateVerificationModal
         isOpen={isUpdateVerificationModalOpen}
-        onClose={() => setIsUpdateVerificationModalOpen(false)}
+        onClose={handleVerificationCompleted}
         clientId={params.id}
         clientName={client.name}
         equipments={client.equipments}

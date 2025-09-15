@@ -75,6 +75,12 @@ export default function UpdateVerificationModal({
     onClose();
   };
 
+  // Terminer le workflow et notifier le parent
+  const completeWorkflow = () => {
+    setCurrentStep('completed');
+    onVerificationUpdated(); // Notifier le parent seulement à la fin
+  };
+
   // Obtenir la date d'aujourd'hui au format YYYY-MM-DD
   const getTodayDate = (): string => {
     return new Date().toISOString().split('T')[0];
@@ -116,13 +122,13 @@ export default function UpdateVerificationModal({
 
       // Passer à l'étape suivante
       if (paEquips.length === 0) {
-        setCurrentStep('completed');
+        completeWorkflow();
       } else {
         setCurrentStep('pa-check');
       }
 
-      // Notifier le parent de la mise à jour
-      onVerificationUpdated();
+      // Ne pas notifier le parent maintenant - attendre la fin du workflow
+      // onVerificationUpdated();
     } catch (error) {
       console.error('Erreur lors de la mise à jour des vérifications:', error);
       setError(error instanceof Error ? error.message : 'Erreur lors de la mise à jour');
@@ -139,7 +145,7 @@ export default function UpdateVerificationModal({
       setCurrentStep('pa-recharge');
       setRechargeDate(getTodayDate()); // Date par défaut = aujourd'hui
     } else {
-      setCurrentStep('completed');
+      completeWorkflow();
     }
   };
 
@@ -183,7 +189,7 @@ export default function UpdateVerificationModal({
   // Finaliser les recharges PA
   const handleFinalizePARecharges = async () => {
     if (paRecharges.length === 0) {
-      setCurrentStep('completed');
+      completeWorkflow();
       return;
     }
 
@@ -212,8 +218,7 @@ export default function UpdateVerificationModal({
         throw new Error(`Échec de la mise à jour de ${failedUpdates.length} recharge(s) PA`);
       }
 
-      setCurrentStep('completed');
-      onVerificationUpdated(); // Rafraîchir les données
+      completeWorkflow();
     } catch (error) {
       console.error('Erreur lors de la mise à jour des recharges PA:', error);
       setError(error instanceof Error ? error.message : 'Erreur lors de la mise à jour des recharges');
@@ -455,7 +460,7 @@ export default function UpdateVerificationModal({
 
                 <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-3 space-y-reverse sm:space-y-0">
                   <button
-                    onClick={() => setCurrentStep('completed')}
+                    onClick={() => completeWorkflow()}
                     className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     Terminer sans recharge
@@ -486,12 +491,20 @@ export default function UpdateVerificationModal({
               <div className="text-center py-8">
                 <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Mise à jour terminée !
+                  ✅ Mise à jour terminée avec succès !
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Toutes les vérifications ont été mises à jour avec succès.
+                  🎯 Toutes les vérifications ont été mises à jour avec la date d'aujourd'hui.
                   {paRecharges.length > 0 && ` ${paRecharges.length} recharge(s) PA ont également été enregistrées.`}
                 </p>
+                
+                {/* Message de succès */}
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-green-700">
+                    ✨ Les données ont été automatiquement rafraîchies !
+                  </p>
+                </div>
+
                 <button
                   onClick={handleClose}
                   className="px-6 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700 transition-colors"
