@@ -15,6 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 import EditClientModal from '@/components/EditClientModal';
 import AddEquipmentModal from '@/components/AddEquipmentModal';
+import EditEquipmentModal from '@/components/EditEquipmentModal';
 
 // Types basés sur votre schéma Prisma
 interface Material {
@@ -165,6 +166,8 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   const [error, setError] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddEquipmentModalOpen, setIsAddEquipmentModalOpen] = useState(false);
+  const [isEditEquipmentModalOpen, setIsEditEquipmentModalOpen] = useState(false);
+  const [equipmentToEdit, setEquipmentToEdit] = useState<ClientEquipment | null>(null);
 
   // Charger les données du client
   const fetchClient = async () => {
@@ -226,8 +229,22 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   };
 
   const handleEditEquipment = (equipmentId: string) => {
-    // TODO: Implémenter le modal d'édition d'équipement
-    alert(`Modifier équipement ${equipmentId} - À implémenter prochainement`);
+    const equipment = client?.equipments.find(eq => eq.id === equipmentId);
+    if (equipment) {
+      setEquipmentToEdit(equipment);
+      setIsEditEquipmentModalOpen(true);
+    }
+  };
+
+  const handleEquipmentUpdated = (updatedEquipment: ClientEquipment) => {
+    if (client) {
+      setClient({
+        ...client,
+        equipments: client.equipments.map(eq => 
+          eq.id === updatedEquipment.id ? updatedEquipment : eq
+        )
+      });
+    }
   };
 
   const handleDeleteEquipment = async (equipmentId: string) => {
@@ -498,6 +515,16 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
         onClose={() => setIsAddEquipmentModalOpen(false)}
         clientId={params.id}
         onEquipmentAdded={handleEquipmentAdded}
+      />
+
+      <EditEquipmentModal
+        isOpen={isEditEquipmentModalOpen}
+        onClose={() => {
+          setIsEditEquipmentModalOpen(false);
+          setEquipmentToEdit(null);
+        }}
+        equipment={equipmentToEdit}
+        onEquipmentUpdated={handleEquipmentUpdated}
       />
     </div>
   );

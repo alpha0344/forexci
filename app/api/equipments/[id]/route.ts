@@ -113,27 +113,6 @@ export async function PUT(
 
     const updateData = validationResult.data;
 
-    // Si le numéro change, vérifier qu'il n'est pas déjà utilisé
-    if (updateData.number && updateData.number !== existingEquipment.number) {
-      const duplicateEquipment = await prisma.clientEquipment.findFirst({
-        where: {
-          clientId: existingEquipment.clientId,
-          number: updateData.number,
-          id: { not: id }
-        }
-      });
-
-      if (duplicateEquipment) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Un équipement avec le numéro ${updateData.number} existe déjà pour ce client`
-          },
-          { status: 409 }
-        );
-      }
-    }
-
     // Préparer les données de mise à jour
     const dataToUpdate: any = {};
 
