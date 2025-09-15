@@ -14,6 +14,12 @@ enum MaterialType {
   ALARM   // Alarme
 }
 
+// Énumération pour les types de recharge
+enum RechargeType {
+  WATER_ADD    // Eau + additif
+  POWDER       // Poudre
+}
+
 model User {
   id                 String   @id @default(uuid())
   email              String   @unique
@@ -34,4 +40,39 @@ model Material {
   validityTime          Int          // Temps avant changement/maintenance de la pièce
   timeBeforeControl     Int          // Temps en jours avant contrôle obligatoire
   timeBeforeReload      Int?         // Temps avant le changement de produit (optionnel)
+
+  clientEquipments      ClientEquipment[]
+}
+
+model Client {
+  id              String   @id @default(uuid())
+  name            String   // Nom du client/entreprise
+  location        String   // Localisation/adresse
+  contactName     String   // Nom du contact principal
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  equipments      ClientEquipment[]
+
+  @@map("clients") // table name in database
+}
+
+model ClientEquipment {
+  id                        String        @id @default(uuid())
+  clientId                  String        // Clé étrangère vers Client
+  materialId                String        // Clé étrangère vers Material
+  number                    Int           // Numéro pour identification
+  commissioningDate         DateTime      // Date de mise en service
+  lastVerificationDate      DateTime?     // Date dernière vérification
+  lastRechargeDate          DateTime?     // Date dernière recharge
+  rechargeType              RechargeType? // Type de recharge effectuée
+  volume                    Int?          // Volume de l'équipement
+  notes                     String?       // Notes diverses
+
+  client                    Client        @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  material                  Material      @relation(fields: [materialId], references: [id], onDelete: Restrict)
+
+  @@map("client_equipments") // table name in database
+  @@index([clientId])        // Index pour optimiser les requêtes
+  @@index([materialId])      // Index pour optimiser les requêtes
 }
