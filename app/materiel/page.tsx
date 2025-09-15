@@ -130,11 +130,16 @@ export default function MaterielPage() {
       const response = await fetch('/api/materials')
 
       if (response.ok) {
-        const data = await response.json()
-        setMaterials(data.materials)
+        const result = await response.json()
+        // L'API retourne les données dans result.data
+        setMaterials(result.data || [])
+      } else {
+        console.error('Erreur API:', response.status)
+        setMaterials([])
       }
     } catch (error) {
       console.error('Erreur lors du chargement des matériaux:', error)
+      setMaterials([])
     } finally {
       setLoading(false)
     }

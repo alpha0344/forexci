@@ -14,6 +14,7 @@ import {
   CalendarIcon
 } from '@heroicons/react/24/outline';
 import EditClientModal from '@/components/EditClientModal';
+import AddEquipmentModal from '@/components/AddEquipmentModal';
 
 // Types basés sur votre schéma Prisma
 interface Material {
@@ -163,6 +164,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddEquipmentModalOpen, setIsAddEquipmentModalOpen] = useState(false);
 
   // Charger les données du client
   const fetchClient = async () => {
@@ -210,8 +212,17 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   };
 
   const handleAddEquipment = () => {
-    // TODO: Implémenter le modal d'ajout d'équipement
-    alert('Fonctionnalité d\'ajout d\'équipement - À implémenter prochainement');
+    setIsAddEquipmentModalOpen(true);
+  };
+
+  const handleEquipmentAdded = (newEquipment: ClientEquipment) => {
+    // Ajouter le nouvel équipement à la liste
+    if (client) {
+      setClient({
+        ...client,
+        equipments: [...client.equipments, newEquipment]
+      });
+    }
   };
 
   const handleEditEquipment = (equipmentId: string) => {
@@ -480,6 +491,13 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
         onClose={() => setIsEditModalOpen(false)}
         client={client}
         onClientUpdated={handleClientUpdated}
+      />
+      
+      <AddEquipmentModal
+        isOpen={isAddEquipmentModalOpen}
+        onClose={() => setIsAddEquipmentModalOpen(false)}
+        clientId={params.id}
+        onEquipmentAdded={handleEquipmentAdded}
       />
     </div>
   );

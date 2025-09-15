@@ -1,22 +1,32 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
 
-// GET - Récupérer tous les matériaux
+const prisma = new PrismaClient();
+
+/**
+ * GET /api/materials
+ * Récupère tous les matériaux disponibles
+ */
 export async function GET() {
     try {
         const materials = await prisma.material.findMany({
             orderBy: { type: 'asc' }
-        })
+        });
 
         return NextResponse.json({
             success: true,
-            materials
-        })
+            data: materials,
+            message: 'Matériaux récupérés avec succès'
+        });
     } catch (error) {
-        console.error('Erreur lors de la récupération des matériaux:', error)
+        console.error('Erreur lors de la récupération des matériaux:', error);
         return NextResponse.json(
-            { error: 'Erreur lors de la récupération des matériaux' },
+            {
+                success: false,
+                error: 'Erreur lors de la récupération des matériaux',
+                details: process.env.NODE_ENV === 'development' ? error : undefined
+            },
             { status: 500 }
-        )
+        );
     }
 }

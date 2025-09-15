@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           error: 'Données de validation invalides',
-          details: validationResult.error.errors
+          details: validationResult.error.issues
         },
         { status: 400 }
       );
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
         name: name.trim(),
         location: location.trim(),
         contactName: contactName.trim(),
-        phone: phone?.trim() || null
+        ...(phone && { phone: phone.trim() })
       },
       include: {
         equipments: {

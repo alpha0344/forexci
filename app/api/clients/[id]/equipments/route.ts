@@ -134,24 +134,6 @@ export async function POST(
       );
     }
 
-    // Vérifier que le numéro n'est pas déjà utilisé pour ce client
-    const existingEquipment = await prisma.clientEquipment.findFirst({
-      where: {
-        clientId: id,
-        number: number
-      }
-    });
-
-    if (existingEquipment) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Un équipement avec le numéro ${number} existe déjà pour ce client`
-        },
-        { status: 409 }
-      );
-    }
-
     // Créer le nouvel équipement
     const newEquipment = await prisma.clientEquipment.create({
       data: {
