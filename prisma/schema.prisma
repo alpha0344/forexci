@@ -49,6 +49,7 @@ model Client {
   name            String   // Nom du client/entreprise
   location        String   // Localisation/adresse
   contactName     String   // Nom du contact principal
+  phone           String?  // Numéro de téléphone du client
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

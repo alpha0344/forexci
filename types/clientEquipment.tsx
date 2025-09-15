@@ -10,6 +10,7 @@ export interface Client {
   name: string
   location: string
   contactName: string
+  phone?: string
   createdAt: Date
   updatedAt: Date
   equipments?: ClientEquipment[]
