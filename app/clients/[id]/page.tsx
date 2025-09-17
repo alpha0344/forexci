@@ -19,6 +19,7 @@ import EditEquipmentModal from '@/components/EditEquipmentModal';
 import UpdateVerificationModal from '@/components/UpdateVerificationModal';
 import { 
   isEquipmentValid, 
+  isControlValid,
   type EquipmentWithMaterial 
 } from '@/lib/equipmentValidation';
 
@@ -53,6 +54,149 @@ interface Client {
   createdAt: string;
   updatedAt: string;
 }
+
+/**
+ * ============================================================================
+ * HELPER FUNCTIONS POUR LES STYLES DES ÉQUIPEMENTS - VALIDITÉ ET CONTRÔLE
+ * ============================================================================
+ */
+
+/**
+ * Détermine le statut de validité d'un équipement
+ */
+const getEquipmentValidityStatus = (equipment: ClientEquipment) => {
+  const commissioningDate = new Date(equipment.commissioningDate);
+  const validityDays = equipment.material.validityTime;
+  const expirationDate = new Date(
+    commissioningDate.getTime() + validityDays * 24 * 60 * 60 * 1000
+  );
+  const today = new Date();
+  
+  const isExpired = expirationDate < today;
+  const daysDifference = Math.ceil(
+    Math.abs(expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  
+  const isSoon = !isExpired && daysDifference <= 30;
+  
+  return {
+    isExpired,
+    isSoon,
+    daysDifference,
+    expirationDate,
+    isValid: !isExpired
+  };
+};
+
+/**
+ * Détermine le statut de contrôle d'un équipement
+ */
+const getEquipmentControlStatus = (equipment: ClientEquipment) => {
+  const commissioningDate = new Date(equipment.commissioningDate);
+  const today = new Date();
+  
+  let nextControlDate: Date;
+  
+  if (equipment.lastVerificationDate) {
+    const lastVerif = new Date(equipment.lastVerificationDate);
+    nextControlDate = new Date(
+      lastVerif.getTime() + equipment.material.timeBeforeControl * 24 * 60 * 60 * 1000
+    );
+  } else {
+    nextControlDate = new Date(
+      commissioningDate.getTime() + equipment.material.timeBeforeControl * 24 * 60 * 60 * 1000
+    );
+  }
+  
+  const isExpired = nextControlDate < today;
+  const daysDifference = Math.ceil(
+    Math.abs(nextControlDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  
+  const isSoon = !isExpired && daysDifference <= 30;
+  
+  return {
+    isExpired,
+    isSoon,
+    daysDifference,
+    nextControlDate,
+    isValid: !isExpired,
+    hasNeverBeenControlled: !equipment.lastVerificationDate
+  };
+};
+
+/**
+ * Détermine le statut global d'un équipement
+ */
+const getEquipmentGlobalStatus = (equipment: ClientEquipment) => {
+  const validityStatus = getEquipmentValidityStatus(equipment);
+  const controlStatus = getEquipmentControlStatus(equipment);
+  
+  let priority = 'normal';
+  let statusType = 'valid';
+  
+  if (validityStatus.isExpired) {
+    priority = 'critical';
+    statusType = 'validity-expired';
+  } else if (controlStatus.isExpired) {
+    priority = 'important';
+    statusType = 'control-expired';
+  } else if (validityStatus.isSoon) {
+    priority = 'moderate';
+    statusType = 'validity-soon';
+  } else if (controlStatus.isSoon) {
+    priority = 'moderate';
+    statusType = 'control-soon';
+  }
+  
+  return {
+    validity: validityStatus,
+    control: controlStatus,
+    priority,
+    statusType
+  };
+};
+
+/**
+ * Classes CSS pour le nom selon le statut global
+ */
+const getEquipmentNameClasses = (equipment: ClientEquipment): string => {
+  const globalStatus = getEquipmentGlobalStatus(equipment);
+  
+  if (globalStatus.priority === 'critical' || globalStatus.priority === 'important') {
+    return 'text-red-600 font-semibold';
+  }
+  
+  if (globalStatus.priority === 'moderate') {
+    return 'text-yellow-600 font-semibold';
+  }
+  
+  return 'text-gray-900';
+};
+
+/**
+ * Classes CSS pour la card selon le statut global
+ */
+const getEquipmentCardClasses = (equipment: ClientEquipment): string => {
+  const baseClasses = 'bg-white rounded-lg shadow-sm border p-6';
+  const globalStatus = getEquipmentGlobalStatus(equipment);
+  
+  if (globalStatus.priority === 'critical' || globalStatus.priority === 'important') {
+    return `${baseClasses} border-red-300 bg-red-50/30`;
+  }
+  
+  if (globalStatus.priority === 'moderate') {
+    return `${baseClasses} border-yellow-300 bg-yellow-50/30`;
+  }
+  
+  return `${baseClasses} border-gray-200`;
+};
+
+/**
+ * ============================================================================
+ * COMPOSANTS
+ * ============================================================================
+ */
 
 /**
  * Composant Card pour les informations client
@@ -125,7 +269,7 @@ const ClientInfoCard: React.FC<ClientInfoCardProps> = ({ client, onEdit }) => {
 };
 
 /**
- * Composant Card pour les statistiques des équipements
+ * Composant pour les statistiques
  */
 interface EquipmentStatsProps {
   equipments: ClientEquipment[];
@@ -137,18 +281,26 @@ const EquipmentStats: React.FC<EquipmentStatsProps> = ({ equipments }) => {
     pa: equipments.filter(eq => eq.material.type === 'PA').length,
     pp: equipments.filter(eq => eq.material.type === 'PP').length,
     alarm: equipments.filter(eq => eq.material.type === 'ALARM').length,
-    expired: equipments.filter(eq => {
+    validityExpired: equipments.filter(eq => {
       const status = getEquipmentValidityStatus(eq);
       return status.isExpired;
     }).length,
-    expiringSoon: equipments.filter(eq => {
+    validityExpiringSoon: equipments.filter(eq => {
       const status = getEquipmentValidityStatus(eq);
+      return !status.isExpired && status.isSoon;
+    }).length,
+    controlExpired: equipments.filter(eq => {
+      const status = getEquipmentControlStatus(eq);
+      return status.isExpired;
+    }).length,
+    controlDueSoon: equipments.filter(eq => {
+      const status = getEquipmentControlStatus(eq);
       return !status.isExpired && status.isSoon;
     }).length
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
       <div className="bg-white rounded-lg border border-gray-200 p-4 text-center">
         <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
         <p className="text-sm text-gray-500">Total équipements</p>
@@ -166,12 +318,20 @@ const EquipmentStats: React.FC<EquipmentStatsProps> = ({ equipments }) => {
         <p className="text-sm text-orange-600">Alarmes</p>
       </div>
       <div className="bg-red-50 rounded-lg border border-red-200 p-4 text-center">
-        <p className="text-2xl font-bold text-red-900">{stats.expired}</p>
+        <p className="text-2xl font-bold text-red-900">{stats.validityExpired}</p>
         <p className="text-sm text-red-600">Matériels expirés</p>
       </div>
       <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-4 text-center">
-        <p className="text-2xl font-bold text-yellow-900">{stats.expiringSoon}</p>
+        <p className="text-2xl font-bold text-yellow-900">{stats.validityExpiringSoon}</p>
         <p className="text-sm text-yellow-600">Expirent bientôt</p>
+      </div>
+      <div className="bg-red-50 rounded-lg border border-red-200 p-4 text-center">
+        <p className="text-2xl font-bold text-red-900">{stats.controlExpired}</p>
+        <p className="text-sm text-red-600">Contrôles en retard</p>
+      </div>
+      <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-4 text-center">
+        <p className="text-2xl font-bold text-yellow-900">{stats.controlDueSoon}</p>
+        <p className="text-sm text-yellow-600">Contrôles bientôt</p>
       </div>
     </div>
   );
@@ -179,86 +339,8 @@ const EquipmentStats: React.FC<EquipmentStatsProps> = ({ equipments }) => {
 
 /**
  * ============================================================================
- * HELPER FUNCTIONS POUR LES STYLES DES ÉQUIPEMENTS - VALIDITÉ UNIQUEMENT
+ * COMPOSANT PRINCIPAL
  * ============================================================================
- */
-
-/**
- * Détermine le statut de validité d'un équipement
- * @param equipment - Équipement avec son matériel
- * @returns Objet avec les informations de statut
- */
-const getEquipmentValidityStatus = (equipment: ClientEquipment) => {
-  // Calculer la date d'expiration du matériel
-  const commissioningDate = new Date(equipment.commissioningDate);
-  const validityDays = equipment.material.validityTime;
-  const expirationDate = new Date(
-    commissioningDate.getTime() + validityDays * 24 * 60 * 60 * 1000
-  );
-  const today = new Date();
-  
-  const isExpired = expirationDate < today;
-  const daysDifference = Math.ceil(
-    Math.abs(expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-  );
-  
-  // Vérifier si c'est "bientôt" (dans les 30 prochains jours)
-  const isSoon = !isExpired && daysDifference <= 30;
-  
-  return {
-    isExpired,
-    isSoon,
-    daysDifference,
-    expirationDate,
-    isValid: !isExpired
-  };
-};
-
-/**
- * Détermine les classes CSS pour le nom de l'équipement selon son statut de validité
- * @param equipment - Équipement avec son matériel
- * @returns Classes CSS appropriées
- */
-const getEquipmentNameClasses = (equipment: ClientEquipment): string => {
-  const status = getEquipmentValidityStatus(equipment);
-  
-  if (status.isExpired) {
-    return 'text-red-600 font-semibold';
-  }
-  
-  if (status.isSoon) {
-    return 'text-yellow-600 font-semibold';
-  }
-  
-  // Tout va bien (noir par défaut)
-  return 'text-gray-900';
-};
-
-/**
- * Détermine les classes CSS pour la card entière selon le statut de validité
- * @param equipment - Équipement avec son matériel
- * @returns Classes CSS pour la bordure de la card
- */
-const getEquipmentCardClasses = (equipment: ClientEquipment): string => {
-  const baseClasses = 'bg-white rounded-lg shadow-sm border p-6';
-  const status = getEquipmentValidityStatus(equipment);
-  
-  // Matériel expiré = bordure rouge
-  if (status.isExpired) {
-    return `${baseClasses} border-red-300 bg-red-50/30`;
-  }
-  
-  // Matériel qui expire bientôt = bordure jaune
-  if (status.isSoon) {
-    return `${baseClasses} border-yellow-300 bg-yellow-50/30`;
-  }
-  
-  // Tout va bien = bordure normale
-  return `${baseClasses} border-gray-200`;
-};
-
-/**
- * Page principale de détail client
  */
 export default function ClientDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -270,6 +352,27 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   const [isEditEquipmentModalOpen, setIsEditEquipmentModalOpen] = useState(false);
   const [isUpdateVerificationModalOpen, setIsUpdateVerificationModalOpen] = useState(false);
   const [equipmentToEdit, setEquipmentToEdit] = useState<ClientEquipment | null>(null);
+
+  // Optimisation performances
+  const equipmentStatuses = useMemo(() => {
+    if (!client?.equipments) return new Map();
+    
+    const statusMap = new Map();
+    
+    client.equipments.forEach((equipment) => {
+      const globalStatus = getEquipmentGlobalStatus(equipment);
+      
+      statusMap.set(equipment.id, {
+        global: globalStatus,
+        validity: globalStatus.validity,
+        control: globalStatus.control,
+        nameClasses: getEquipmentNameClasses(equipment),
+        cardClasses: getEquipmentCardClasses(equipment)
+      });
+    });
+    
+    return statusMap;
+  }, [client?.equipments]);
 
   // Charger les données du client
   const fetchClient = async () => {
@@ -302,42 +405,12 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
     fetchClient();
   }, [params.id]);
 
-  // ============================================================================
-  // OPTIMISATION PERFORMANCES - Mémorisation des calculs de statut de validité
-  // ============================================================================
-  
-  /**
-   * Mémorisation des statuts d'équipements pour éviter les recalculs à chaque render
-   * Ne recalcule que si les équipements changent
-   */
-  const equipmentStatuses = useMemo(() => {
-    if (!client?.equipments) return new Map();
-    
-    const statusMap = new Map();
-    
-    client.equipments.forEach((equipment) => {
-      const validityStatus = getEquipmentValidityStatus(equipment);
-      
-      statusMap.set(equipment.id, {
-        isExpired: validityStatus.isExpired,
-        isSoon: validityStatus.isSoon,
-        daysDifference: validityStatus.daysDifference,
-        expirationDate: validityStatus.expirationDate,
-        nameClasses: getEquipmentNameClasses(equipment),
-        cardClasses: getEquipmentCardClasses(equipment)
-      });
-    });
-    
-    return statusMap;
-  }, [client?.equipments]);
-
   // Gestionnaires d'événements
   const handleEditClient = () => {
     setIsEditModalOpen(true);
   };
 
   const handleClientUpdated = (updatedClient: any) => {
-    // Conserver les équipements existants si non inclus dans la réponse
     const clientWithEquipments = {
       ...updatedClient,
       equipments: updatedClient.equipments || client?.equipments || []
@@ -350,7 +423,6 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   };
 
   const handleEquipmentAdded = (newEquipment: ClientEquipment) => {
-    // Ajouter le nouvel équipement à la liste
     if (client) {
       setClient({
         ...client,
@@ -383,14 +455,10 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   };
 
   const handleVerificationUpdated = () => {
-    // Ne pas recharger les données pendant que le modal est ouvert
-    // Le modal gère son propre état et rechargera à la fin
-    // Cette fonction peut être appelée pour d'autres actions si nécessaire
     console.log('Verification updated - modal en cours');
   };
 
   const handleVerificationCompleted = () => {
-    // Recharger les données du client après fermeture complète du modal
     fetchClient();
     setIsUpdateVerificationModalOpen(false);
   };
@@ -406,7 +474,6 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
       });
 
       if (response.ok) {
-        // Recharger les données du client
         fetchClient();
       } else {
         const result = await response.json();
@@ -610,102 +677,140 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                       <div>
                         <h3 className={`text-lg font-medium ${status?.nameClasses || getEquipmentNameClasses(equipment)}`}>
                           Équipement #{equipment.number}
-                          {/* Indicateurs visuels de statut de validité */}
-                          {status && status.isExpired && (
-                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                              ⚠️ Matériel expiré
-                            </span>
-                          )}
-                          {status && !status.isExpired && status.isSoon && (
-                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                              � Expire bientôt
-                            </span>
+                          {/* Badges de statut */}
+                          {status?.global && (
+                            <>
+                              {status.global.statusType === 'validity-expired' && (
+                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                  ⚠️ Matériel expiré
+                                </span>
+                              )}
+                              {status.global.statusType === 'control-expired' && (
+                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                  🔍 Contrôle en retard
+                                </span>
+                              )}
+                              {status.global.statusType === 'validity-soon' && (
+                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                  📅 Expire bientôt
+                                </span>
+                              )}
+                              {status.global.statusType === 'control-soon' && (
+                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                  📋 Contrôle bientôt
+                                </span>
+                              )}
+                            </>
                           )}
                         </h3>
                         <p className="text-sm text-gray-500">
                           Type: {equipment.material.type}
                         </p>
                       </div>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      equipment.material.type === 'PA' ? 'bg-blue-100 text-blue-800' :
-                      equipment.material.type === 'PP' ? 'bg-green-100 text-green-800' :
-                      'bg-orange-100 text-orange-800'
-                    }`}>
-                      {equipment.material.type}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <span className="text-gray-500">Mise en service:</span>
-                      <span className="ml-2 text-gray-900">
-                        {new Date(equipment.commissioningDate).toLocaleDateString('fr-FR')}
-                      </span>
-                    </div>
-                    
-                    {/* Informations de validité */}
-                    <div>
-                      <span className="text-gray-500">Validité matériel:</span>
-                      <span className={`ml-2 font-medium ${
-                        status?.isExpired ? 'text-red-600' : 
-                        status?.isSoon ? 'text-yellow-600' : 'text-green-600'
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        equipment.material.type === 'PA' ? 'bg-blue-100 text-blue-800' :
+                        equipment.material.type === 'PP' ? 'bg-green-100 text-green-800' :
+                        'bg-orange-100 text-orange-800'
                       }`}>
-                        {status?.expirationDate 
-                          ? new Date(status.expirationDate).toLocaleDateString('fr-FR')
-                          : 'Non calculée'
-                        }
-                        {status?.isExpired && (
-                          <span className="text-red-600 text-xs ml-1">
-                            (expiré il y a {status.daysDifference} j)
-                          </span>
-                        )}
-                        {status?.isSoon && (
-                          <span className="text-yellow-600 text-xs ml-1">
-                            (expire dans {status.daysDifference} j)
-                          </span>
-                        )}
+                        {equipment.material.type}
                       </span>
                     </div>
-                    
-                    {equipment.lastVerificationDate && (
+
+                    <div className="space-y-2 text-sm">
                       <div>
-                        <span className="text-gray-500">Dernière vérification:</span>
+                        <span className="text-gray-500">Mise en service:</span>
                         <span className="ml-2 text-gray-900">
-                          {new Date(equipment.lastVerificationDate).toLocaleDateString('fr-FR')}
+                          {new Date(equipment.commissioningDate).toLocaleDateString('fr-FR')}
                         </span>
                       </div>
-                    )}
-
-                    {equipment.volume && (
+                      
+                      {/* Informations de validité */}
                       <div>
-                        <span className="text-gray-500">Volume:</span>
-                        <span className="ml-2 text-gray-900">{equipment.volume}L</span>
+                        <span className="text-gray-500">Validité matériel:</span>
+                        <span className={`ml-2 font-medium ${
+                          status?.validity?.isExpired ? 'text-red-600' : 
+                          status?.validity?.isSoon ? 'text-yellow-600' : 'text-green-600'
+                        }`}>
+                          {status?.validity?.expirationDate 
+                            ? new Date(status.validity.expirationDate).toLocaleDateString('fr-FR')
+                            : 'Non calculée'
+                          }
+                          {status?.validity?.isExpired && (
+                            <span className="text-red-600 text-xs ml-1">
+                              (expiré il y a {status.validity.daysDifference} j)
+                            </span>
+                          )}
+                          {status?.validity?.isSoon && (
+                            <span className="text-yellow-600 text-xs ml-1">
+                              (expire dans {status.validity.daysDifference} j)
+                            </span>
+                          )}
+                        </span>
                       </div>
-                    )}
 
-                    {equipment.notes && (
+                      {/* Informations de contrôle */}
                       <div>
-                        <span className="text-gray-500">Notes:</span>
-                        <p className="text-gray-900 text-xs mt-1">{equipment.notes}</p>
+                        <span className="text-gray-500">Prochain contrôle:</span>
+                        <span className={`ml-2 font-medium ${
+                          status?.control?.isExpired ? 'text-red-600' : 
+                          status?.control?.isSoon ? 'text-yellow-600' : 'text-green-600'
+                        }`}>
+                          {status?.control?.nextControlDate 
+                            ? new Date(status.control.nextControlDate).toLocaleDateString('fr-FR')
+                            : 'Non calculé'
+                          }
+                          {status?.control?.isExpired && (
+                            <span className="text-red-600 text-xs ml-1">
+                              (en retard de {status.control.daysDifference} j)
+                            </span>
+                          )}
+                          {status?.control?.isSoon && (
+                            <span className="text-yellow-600 text-xs ml-1">
+                              (dans {status.control.daysDifference} j)
+                            </span>
+                          )}
+                        </span>
                       </div>
-                    )}
-                  </div>
+                      
+                      {equipment.lastVerificationDate && (
+                        <div>
+                          <span className="text-gray-500">Dernière vérification:</span>
+                          <span className="ml-2 text-gray-900">
+                            {new Date(equipment.lastVerificationDate).toLocaleDateString('fr-FR')}
+                          </span>
+                        </div>
+                      )}
 
-                  <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end space-x-2">
-                    <button 
-                      onClick={() => handleEditEquipment(equipment.id)}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
-                    >
-                      Modifier
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteEquipment(equipment.id)}
-                      className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
-                    >
-                      Supprimer
-                    </button>
+                      {equipment.volume && (
+                        <div>
+                          <span className="text-gray-500">Volume:</span>
+                          <span className="ml-2 text-gray-900">{equipment.volume}L</span>
+                        </div>
+                      )}
+
+                      {equipment.notes && (
+                        <div>
+                          <span className="text-gray-500">Notes:</span>
+                          <p className="text-gray-900 text-xs mt-1">{equipment.notes}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end space-x-2">
+                      <button 
+                        onClick={() => handleEditEquipment(equipment.id)}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+                      >
+                        Modifier
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteEquipment(equipment.id)}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
                   </div>
-                </div>
                 );
               })}
             </div>
