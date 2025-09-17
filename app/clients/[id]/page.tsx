@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -17,6 +17,13 @@ import EditClientModal from '@/components/EditClientModal';
 import AddEquipmentModal from '@/components/AddEquipmentModal';
 import EditEquipmentModal from '@/components/EditEquipmentModal';
 import UpdateVerificationModal from '@/components/UpdateVerificationModal';
+import { 
+  isEquipmentValid, 
+  isControlValid, 
+  isRechargeValid,
+  getEquipmentStatusSummary,
+  type EquipmentWithMaterial 
+} from '@/lib/equipmentValidation';
 
 // Types basés sur votre schéma Prisma
 interface Material {
@@ -158,6 +165,95 @@ const EquipmentStats: React.FC<EquipmentStatsProps> = ({ equipments }) => {
 };
 
 /**
+ * ============================================================================
+ * HELPER FUNCTIONS POUR LES STYLES DES ÉQUIPEMENTS
+ * ============================================================================
+ */
+
+/**
+ * Détermine les classes CSS pour le nom de l'équipement selon son statut
+ * @param equipment - Équipement avec son matériel
+ * @returns Classes CSS appropriées
+ */
+const getEquipmentNameClasses = (equipment: ClientEquipment): string => {
+  // Cast de l'équipement vers le type attendu par les fonctions de validation
+  const equipmentForValidation = {
+    id: equipment.id,
+    commissioningDate: equipment.commissioningDate,
+    lastVerificationDate: equipment.lastVerificationDate,
+    lastRechargeDate: equipment.lastRechargeDate,
+    material: {
+      id: equipment.material.id,
+      type: equipment.material.type,
+      validityTime: equipment.material.validityTime,
+      timeBeforeControl: equipment.material.timeBeforeControl,
+      timeBeforeReload: equipment.material.timeBeforeReload
+    }
+  } as EquipmentWithMaterial;
+
+  // Vérifier la validité (priorité 1 : rouge si expiré)
+  if (!isEquipmentValid(equipmentForValidation)) {
+    return 'text-red-600 font-semibold';
+  }
+  
+  // Vérifier le contrôle (priorité 2 : orange si contrôle nécessaire)
+  if (!isControlValid(equipmentForValidation)) {
+    return 'text-orange-600 font-semibold';
+  }
+
+  // Vérifier la recharge PA (priorité 2 : orange si recharge nécessaire)
+  const rechargeStatus = isRechargeValid(equipmentForValidation);
+  if (rechargeStatus === false) { // false = recharge nécessaire, null = non applicable
+    return 'text-orange-600 font-semibold';
+  }
+  
+  // Tout va bien (noir par défaut)
+  return 'text-gray-900';
+};
+
+/**
+ * Détermine les classes CSS pour la card entière selon le statut de l'équipement
+ * @param equipment - Équipement avec son matériel
+ * @returns Classes CSS pour la bordure de la card
+ */
+const getEquipmentCardClasses = (equipment: ClientEquipment): string => {
+  const equipmentForValidation = {
+    id: equipment.id,
+    commissioningDate: equipment.commissioningDate,
+    lastVerificationDate: equipment.lastVerificationDate,
+    lastRechargeDate: equipment.lastRechargeDate,
+    material: {
+      id: equipment.material.id,
+      type: equipment.material.type,
+      validityTime: equipment.material.validityTime,
+      timeBeforeControl: equipment.material.timeBeforeControl,
+      timeBeforeReload: equipment.material.timeBeforeReload
+    }
+  } as EquipmentWithMaterial;
+
+  const baseClasses = 'bg-white rounded-lg shadow-sm border p-6';
+  
+  // Validité expirée = bordure rouge
+  if (!isEquipmentValid(equipmentForValidation)) {
+    return `${baseClasses} border-red-300 bg-red-50/30`;
+  }
+  
+  // Contrôle nécessaire = bordure orange
+  if (!isControlValid(equipmentForValidation)) {
+    return `${baseClasses} border-orange-300 bg-orange-50/30`;
+  }
+
+  // Recharge PA nécessaire = bordure orange
+  const rechargeStatus = isRechargeValid(equipmentForValidation);
+  if (rechargeStatus === false) { // false = recharge nécessaire
+    return `${baseClasses} border-orange-300 bg-orange-50/30`;
+  }
+  
+  // Tout va bien = bordure normale
+  return `${baseClasses} border-gray-200`;
+};
+
+/**
  * Page principale de détail client
  */
 export default function ClientDetailPage({ params }: { params: { id: string } }) {
@@ -201,6 +297,46 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   useEffect(() => {
     fetchClient();
   }, [params.id]);
+
+  // ============================================================================
+  // OPTIMISATION PERFORMANCES - Mémorisation des calculs de statut
+  // ============================================================================
+  
+  /**
+   * Mémorisation des statuts d'équipements pour éviter les recalculs à chaque render
+   * Ne recalcule que si les équipements changent
+   */
+  const equipmentStatuses = useMemo(() => {
+    if (!client?.equipments) return new Map();
+    
+    const statusMap = new Map();
+    
+    client.equipments.forEach((equipment) => {
+      const equipmentForValidation = {
+        id: equipment.id,
+        commissioningDate: equipment.commissioningDate,
+        lastVerificationDate: equipment.lastVerificationDate,
+        lastRechargeDate: equipment.lastRechargeDate,
+        material: {
+          id: equipment.material.id,
+          type: equipment.material.type,
+          validityTime: equipment.material.validityTime,
+          timeBeforeControl: equipment.material.timeBeforeControl,
+          timeBeforeReload: equipment.material.timeBeforeReload
+        }
+      } as EquipmentWithMaterial;
+      
+      statusMap.set(equipment.id, {
+        isValid: isEquipmentValid(equipmentForValidation),
+        needsControl: !isControlValid(equipmentForValidation),
+        needsRecharge: isRechargeValid(equipmentForValidation) === false, // false = recharge nécessaire
+        nameClasses: getEquipmentNameClasses(equipment),
+        cardClasses: getEquipmentCardClasses(equipment)
+      });
+    });
+    
+    return statusMap;
+  }, [client?.equipments]);
 
   // Gestionnaires d'événements
   const handleEditClient = () => {
@@ -473,17 +609,35 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {client.equipments.map((equipment) => (
-                <div key={equipment.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900">
-                        Équipement #{equipment.number}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        Type: {equipment.material.type}
-                      </p>
-                    </div>
+              {client.equipments.map((equipment) => {
+                const status = equipmentStatuses.get(equipment.id);
+                return (
+                  <div key={equipment.id} className={status?.cardClasses || getEquipmentCardClasses(equipment)}>
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className={`text-lg font-medium ${status?.nameClasses || getEquipmentNameClasses(equipment)}`}>
+                          Équipement #{equipment.number}
+                          {/* Indicateurs visuels de statut */}
+                          {status && !status.isValid && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                              ⚠️ Expiré
+                            </span>
+                          )}
+                          {status && status.isValid && status.needsControl && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                              🔍 Contrôle requis
+                            </span>
+                          )}
+                          {status && status.isValid && !status.needsControl && status.needsRecharge && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                              🔄 Recharge requise
+                            </span>
+                          )}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          Type: {equipment.material.type}
+                        </p>
+                      </div>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       equipment.material.type === 'PA' ? 'bg-blue-100 text-blue-800' :
                       equipment.material.type === 'PP' ? 'bg-green-100 text-green-800' :
@@ -540,7 +694,8 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                     </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
