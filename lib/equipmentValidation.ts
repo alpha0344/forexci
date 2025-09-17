@@ -132,9 +132,14 @@ export const getEquipmentValidityStatus = (equipment: EquipmentWithMaterial): Va
  * @returns true si le contrôle est encore valide, false sinon
  */
 export const isControlValid = (equipment: EquipmentWithMaterial): boolean => {
-  // Si aucune vérification n'a été effectuée, le contrôle n'est pas valide
+  // Si aucune vérification n'a été effectuée, calculer depuis la date de mise en service
   if (!equipment.lastVerificationDate) {
-    return false;
+    const commissioningDate = parseDate(equipment.commissioningDate);
+    const controlPeriodDays = equipment.material.timeBeforeControl;
+    const firstControlDate = addDays(commissioningDate, controlPeriodDays);
+    const today = new Date();
+    
+    return today <= firstControlDate;
   }
 
   const lastVerificationDate = parseDate(equipment.lastVerificationDate);
