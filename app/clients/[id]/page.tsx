@@ -1,32 +1,32 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { 
-  ArrowLeftIcon, 
-  PencilIcon, 
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  ArrowLeftIcon,
+  PencilIcon,
   PlusIcon,
   TrashIcon,
   PhoneIcon,
   MapPinIcon,
   UserIcon,
-  CalendarIcon
-} from '@heroicons/react/24/outline';
-import EditClientModal from '@/components/EditClientModal';
-import AddEquipmentModal from '@/components/AddEquipmentModal';
-import EditEquipmentModal from '@/components/EditEquipmentModal';
-import UpdateVerificationModal from '@/components/UpdateVerificationModal';
-import { 
-  isEquipmentValid, 
+  CalendarIcon,
+} from "@heroicons/react/24/outline";
+import EditClientModal from "@/components/EditClientModal";
+import AddEquipmentModal from "@/components/AddEquipmentModal";
+import EditEquipmentModal from "@/components/EditEquipmentModal";
+import UpdateVerificationModal from "@/components/UpdateVerificationModal";
+import {
+  isEquipmentValid,
   isControlValid,
-  type EquipmentWithMaterial 
-} from '@/lib/equipmentValidation';
+  type EquipmentWithMaterial,
+} from "@/lib/equipmentValidation";
 
 // Types basés sur votre schéma Prisma
 interface Material {
   id: string;
-  type: 'PA' | 'PP' | 'ALARM';
+  type: "PA" | "PP" | "ALARM";
   validityTime: number;
   timeBeforeControl: number;
   timeBeforeReload?: number | null;
@@ -38,7 +38,7 @@ interface ClientEquipment {
   commissioningDate: string;
   lastVerificationDate?: string | null;
   lastRechargeDate?: string | null;
-  rechargeType?: 'WATER_ADD' | 'POWDER' | null;
+  rechargeType?: "WATER_ADD" | "POWDER" | null;
   volume?: number | null;
   notes?: string | null;
   material: Material;
@@ -71,20 +71,20 @@ const getEquipmentValidityStatus = (equipment: ClientEquipment) => {
     commissioningDate.getTime() + validityDays * 24 * 60 * 60 * 1000
   );
   const today = new Date();
-  
+
   const isExpired = expirationDate < today;
   const daysDifference = Math.ceil(
     Math.abs(expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
   );
-  
+
   const isSoon = !isExpired && daysDifference <= 30;
-  
+
   return {
     isExpired,
     isSoon,
     daysDifference,
     expirationDate,
-    isValid: !isExpired
+    isValid: !isExpired,
   };
 };
 
@@ -94,34 +94,91 @@ const getEquipmentValidityStatus = (equipment: ClientEquipment) => {
 const getEquipmentControlStatus = (equipment: ClientEquipment) => {
   const commissioningDate = new Date(equipment.commissioningDate);
   const today = new Date();
-  
+
   let nextControlDate: Date;
-  
+
   if (equipment.lastVerificationDate) {
     const lastVerif = new Date(equipment.lastVerificationDate);
     nextControlDate = new Date(
-      lastVerif.getTime() + equipment.material.timeBeforeControl * 24 * 60 * 60 * 1000
+      lastVerif.getTime() +
+        equipment.material.timeBeforeControl * 24 * 60 * 60 * 1000
     );
   } else {
     nextControlDate = new Date(
-      commissioningDate.getTime() + equipment.material.timeBeforeControl * 24 * 60 * 60 * 1000
+      commissioningDate.getTime() +
+        equipment.material.timeBeforeControl * 24 * 60 * 60 * 1000
     );
   }
-  
+
   const isExpired = nextControlDate < today;
   const daysDifference = Math.ceil(
-    Math.abs(nextControlDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    Math.abs(nextControlDate.getTime() - today.getTime()) /
+      (1000 * 60 * 60 * 24)
   );
-  
+
   const isSoon = !isExpired && daysDifference <= 30;
-  
+
   return {
     isExpired,
     isSoon,
     daysDifference,
     nextControlDate,
     isValid: !isExpired,
-    hasNeverBeenControlled: !equipment.lastVerificationDate
+    hasNeverBeenControlled: !equipment.lastVerificationDate,
+  };
+};
+
+/**
+ * Détermine le statut de recharge d'un équipement PA
+ */
+const getEquipmentRechargeStatus = (equipment: ClientEquipment) => {
+  // Vérifier si l'équipement est de type PA et a un timeBeforeReload défini
+  if (equipment.material.type !== "PA" || !equipment.material.timeBeforeReload) {
+    return {
+      isApplicable: false,
+      isExpired: false,
+      isSoon: false,
+      daysDifference: 0,
+      nextRechargeDate: null,
+      isValid: true,
+      hasNeverBeenRecharged: false,
+    };
+  }
+
+  const commissioningDate = new Date(equipment.commissioningDate);
+  const today = new Date();
+
+  let nextRechargeDate: Date;
+
+  if (equipment.lastRechargeDate) {
+    const lastRecharge = new Date(equipment.lastRechargeDate);
+    nextRechargeDate = new Date(
+      lastRecharge.getTime() +
+        equipment.material.timeBeforeReload * 24 * 60 * 60 * 1000
+    );
+  } else {
+    nextRechargeDate = new Date(
+      commissioningDate.getTime() +
+        equipment.material.timeBeforeReload * 24 * 60 * 60 * 1000
+    );
+  }
+
+  const isExpired = nextRechargeDate < today;
+  const daysDifference = Math.ceil(
+    Math.abs(nextRechargeDate.getTime() - today.getTime()) /
+      (1000 * 60 * 60 * 24)
+  );
+
+  const isSoon = !isExpired && daysDifference <= 30;
+
+  return {
+    isApplicable: true,
+    isExpired,
+    isSoon,
+    daysDifference,
+    nextRechargeDate,
+    isValid: !isExpired,
+    hasNeverBeenRecharged: !equipment.lastRechargeDate,
   };
 };
 
@@ -131,29 +188,46 @@ const getEquipmentControlStatus = (equipment: ClientEquipment) => {
 const getEquipmentGlobalStatus = (equipment: ClientEquipment) => {
   const validityStatus = getEquipmentValidityStatus(equipment);
   const controlStatus = getEquipmentControlStatus(equipment);
-  
-  let priority = 'normal';
-  let statusType = 'valid';
-  
+  const rechargeStatus = getEquipmentRechargeStatus(equipment);
+
+  let priority = "normal";
+  let statusType = "valid";
+
+  // Priorité 1 (Critique) : Validité expirée
   if (validityStatus.isExpired) {
-    priority = 'critical';
-    statusType = 'validity-expired';
-  } else if (controlStatus.isExpired) {
-    priority = 'important';
-    statusType = 'control-expired';
-  } else if (validityStatus.isSoon) {
-    priority = 'moderate';
-    statusType = 'validity-soon';
-  } else if (controlStatus.isSoon) {
-    priority = 'moderate';
-    statusType = 'control-soon';
+    priority = "critical";
+    statusType = "validity-expired";
   }
-  
+  // Priorité 2 (Important) : Contrôle expiré ou recharge expirée (PA uniquement)
+  else if (controlStatus.isExpired) {
+    priority = "important";
+    statusType = "control-expired";
+  }
+  else if (rechargeStatus.isApplicable && rechargeStatus.isExpired) {
+    priority = "important";
+    statusType = "recharge-expired";
+  }
+  // Priorité 3 (Modéré) : Validité bientôt expirée
+  else if (validityStatus.isSoon) {
+    priority = "moderate";
+    statusType = "validity-soon";
+  }
+  // Priorité 4 (Attention) : Contrôle ou recharge bientôt dus
+  else if (controlStatus.isSoon) {
+    priority = "attention";
+    statusType = "control-soon";
+  }
+  else if (rechargeStatus.isApplicable && rechargeStatus.isSoon) {
+    priority = "attention";
+    statusType = "recharge-soon";
+  }
+
   return {
     validity: validityStatus,
     control: controlStatus,
+    recharge: rechargeStatus,
     priority,
-    statusType
+    statusType,
   };
 };
 
@@ -162,33 +236,47 @@ const getEquipmentGlobalStatus = (equipment: ClientEquipment) => {
  */
 const getEquipmentNameClasses = (equipment: ClientEquipment): string => {
   const globalStatus = getEquipmentGlobalStatus(equipment);
-  
-  if (globalStatus.priority === 'critical' || globalStatus.priority === 'important') {
-    return 'text-red-600 font-semibold';
+
+  if (
+    globalStatus.priority === "critical" ||
+    globalStatus.priority === "important"
+  ) {
+    return "text-red-600 font-semibold";
   }
-  
-  if (globalStatus.priority === 'moderate') {
-    return 'text-yellow-600 font-semibold';
+
+  if (globalStatus.priority === "moderate") {
+    return "text-yellow-600 font-semibold";
   }
-  
-  return 'text-gray-900';
+
+  if (globalStatus.priority === "attention") {
+    return "text-orange-600 font-medium";
+  }
+
+  return "text-gray-900";
 };
 
 /**
  * Classes CSS pour la card selon le statut global
  */
 const getEquipmentCardClasses = (equipment: ClientEquipment): string => {
-  const baseClasses = 'bg-white rounded-lg shadow-sm border p-6';
+  const baseClasses = "bg-white rounded-lg shadow-sm border p-6";
   const globalStatus = getEquipmentGlobalStatus(equipment);
-  
-  if (globalStatus.priority === 'critical' || globalStatus.priority === 'important') {
+
+  if (
+    globalStatus.priority === "critical" ||
+    globalStatus.priority === "important"
+  ) {
     return `${baseClasses} border-red-300 bg-red-50/30`;
   }
-  
-  if (globalStatus.priority === 'moderate') {
+
+  if (globalStatus.priority === "moderate") {
     return `${baseClasses} border-yellow-300 bg-yellow-50/30`;
   }
-  
+
+  if (globalStatus.priority === "attention") {
+    return `${baseClasses} border-orange-300 bg-orange-50/30`;
+  }
+
   return `${baseClasses} border-gray-200`;
 };
 
@@ -210,7 +298,9 @@ const ClientInfoCard: React.FC<ClientInfoCardProps> = ({ client, onEdit }) => {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div className="flex items-start justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">Informations Client</h2>
+        <h2 className="text-xl font-semibold text-gray-900">
+          Informations Client
+        </h2>
         <button
           onClick={onEdit}
           className="inline-flex items-center p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -243,7 +333,9 @@ const ClientInfoCard: React.FC<ClientInfoCardProps> = ({ client, onEdit }) => {
           <div className="flex items-start space-x-3">
             <UserIcon className="h-5 w-5 text-gray-400 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-gray-500">Contact principal</p>
+              <p className="text-sm font-medium text-gray-500">
+                Contact principal
+              </p>
               <p className="text-gray-900">{client.contactName}</p>
             </div>
           </div>
@@ -252,7 +344,7 @@ const ClientInfoCard: React.FC<ClientInfoCardProps> = ({ client, onEdit }) => {
             <PhoneIcon className="h-5 w-5 text-gray-400 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-gray-500">Téléphone</p>
-              <p className="text-gray-900">{client.phone || 'Non renseigné'}</p>
+              <p className="text-gray-900">{client.phone || "Non renseigné"}</p>
             </div>
           </div>
         </div>
@@ -261,7 +353,10 @@ const ClientInfoCard: React.FC<ClientInfoCardProps> = ({ client, onEdit }) => {
       <div className="mt-4 pt-4 border-t border-gray-200">
         <div className="flex items-center space-x-3 text-sm text-gray-500">
           <CalendarIcon className="h-4 w-4" />
-          <span>Client depuis le {new Date(client.createdAt).toLocaleDateString('fr-FR')}</span>
+          <span>
+            Client depuis le{" "}
+            {new Date(client.createdAt).toLocaleDateString("fr-FR")}
+          </span>
         </div>
       </div>
     </div>
@@ -278,29 +373,37 @@ interface EquipmentStatsProps {
 const EquipmentStats: React.FC<EquipmentStatsProps> = ({ equipments }) => {
   const stats = {
     total: equipments.length,
-    pa: equipments.filter(eq => eq.material.type === 'PA').length,
-    pp: equipments.filter(eq => eq.material.type === 'PP').length,
-    alarm: equipments.filter(eq => eq.material.type === 'ALARM').length,
-    validityExpired: equipments.filter(eq => {
+    pa: equipments.filter((eq) => eq.material.type === "PA").length,
+    pp: equipments.filter((eq) => eq.material.type === "PP").length,
+    alarm: equipments.filter((eq) => eq.material.type === "ALARM").length,
+    validityExpired: equipments.filter((eq) => {
       const status = getEquipmentValidityStatus(eq);
       return status.isExpired;
     }).length,
-    validityExpiringSoon: equipments.filter(eq => {
+    validityExpiringSoon: equipments.filter((eq) => {
       const status = getEquipmentValidityStatus(eq);
       return !status.isExpired && status.isSoon;
     }).length,
-    controlExpired: equipments.filter(eq => {
+    controlExpired: equipments.filter((eq) => {
       const status = getEquipmentControlStatus(eq);
       return status.isExpired;
     }).length,
-    controlDueSoon: equipments.filter(eq => {
+    controlDueSoon: equipments.filter((eq) => {
       const status = getEquipmentControlStatus(eq);
       return !status.isExpired && status.isSoon;
-    }).length
+    }).length,
+    rechargeExpired: equipments.filter((eq) => {
+      const status = getEquipmentRechargeStatus(eq);
+      return status.isApplicable && status.isExpired;
+    }).length,
+    rechargeDueSoon: equipments.filter((eq) => {
+      const status = getEquipmentRechargeStatus(eq);
+      return status.isApplicable && !status.isExpired && status.isSoon;
+    }).length,
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-4">
       <div className="bg-white rounded-lg border border-gray-200 p-4 text-center">
         <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
         <p className="text-sm text-gray-500">Total équipements</p>
@@ -318,20 +421,40 @@ const EquipmentStats: React.FC<EquipmentStatsProps> = ({ equipments }) => {
         <p className="text-sm text-orange-600">Alarmes</p>
       </div>
       <div className="bg-red-50 rounded-lg border border-red-200 p-4 text-center">
-        <p className="text-2xl font-bold text-red-900">{stats.validityExpired}</p>
+        <p className="text-2xl font-bold text-red-900">
+          {stats.validityExpired}
+        </p>
         <p className="text-sm text-red-600">Matériels expirés</p>
       </div>
       <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-4 text-center">
-        <p className="text-2xl font-bold text-yellow-900">{stats.validityExpiringSoon}</p>
+        <p className="text-2xl font-bold text-yellow-900">
+          {stats.validityExpiringSoon}
+        </p>
         <p className="text-sm text-yellow-600">Expirent bientôt</p>
       </div>
       <div className="bg-red-50 rounded-lg border border-red-200 p-4 text-center">
-        <p className="text-2xl font-bold text-red-900">{stats.controlExpired}</p>
+        <p className="text-2xl font-bold text-red-900">
+          {stats.controlExpired}
+        </p>
         <p className="text-sm text-red-600">Contrôles en retard</p>
       </div>
       <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-4 text-center">
-        <p className="text-2xl font-bold text-yellow-900">{stats.controlDueSoon}</p>
+        <p className="text-2xl font-bold text-yellow-900">
+          {stats.controlDueSoon}
+        </p>
         <p className="text-sm text-yellow-600">Contrôles bientôt</p>
+      </div>
+      <div className="bg-purple-50 rounded-lg border border-purple-200 p-4 text-center">
+        <p className="text-2xl font-bold text-purple-900">
+          {stats.rechargeExpired}
+        </p>
+        <p className="text-sm text-purple-600">Recharges en retard</p>
+      </div>
+      <div className="bg-indigo-50 rounded-lg border border-indigo-200 p-4 text-center">
+        <p className="text-2xl font-bold text-indigo-900">
+          {stats.rechargeDueSoon}
+        </p>
+        <p className="text-sm text-indigo-600">Recharges bientôt</p>
       </div>
     </div>
   );
@@ -342,35 +465,42 @@ const EquipmentStats: React.FC<EquipmentStatsProps> = ({ equipments }) => {
  * COMPOSANT PRINCIPAL
  * ============================================================================
  */
-export default function ClientDetailPage({ params }: { params: { id: string } }) {
+export default function ClientDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const router = useRouter();
   const [client, setClient] = useState<Client | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddEquipmentModalOpen, setIsAddEquipmentModalOpen] = useState(false);
-  const [isEditEquipmentModalOpen, setIsEditEquipmentModalOpen] = useState(false);
-  const [isUpdateVerificationModalOpen, setIsUpdateVerificationModalOpen] = useState(false);
-  const [equipmentToEdit, setEquipmentToEdit] = useState<ClientEquipment | null>(null);
+  const [isEditEquipmentModalOpen, setIsEditEquipmentModalOpen] =
+    useState(false);
+  const [isUpdateVerificationModalOpen, setIsUpdateVerificationModalOpen] =
+    useState(false);
+  const [equipmentToEdit, setEquipmentToEdit] =
+    useState<ClientEquipment | null>(null);
 
   // Optimisation performances
   const equipmentStatuses = useMemo(() => {
     if (!client?.equipments) return new Map();
-    
+
     const statusMap = new Map();
-    
+
     client.equipments.forEach((equipment) => {
       const globalStatus = getEquipmentGlobalStatus(equipment);
-      
+
       statusMap.set(equipment.id, {
         global: globalStatus,
         validity: globalStatus.validity,
         control: globalStatus.control,
         nameClasses: getEquipmentNameClasses(equipment),
-        cardClasses: getEquipmentCardClasses(equipment)
+        cardClasses: getEquipmentCardClasses(equipment),
       });
     });
-    
+
     return statusMap;
   }, [client?.equipments]);
 
@@ -385,17 +515,19 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
 
       if (!response.ok) {
         if (response.status === 404) {
-          setError('Client non trouvé');
+          setError("Client non trouvé");
         } else {
-          throw new Error(result.error || 'Erreur lors du chargement du client');
+          throw new Error(
+            result.error || "Erreur lors du chargement du client"
+          );
         }
         return;
       }
 
       setClient(result.data);
     } catch (error) {
-      console.error('Erreur lors du chargement du client:', error);
-      setError(error instanceof Error ? error.message : 'Erreur inconnue');
+      console.error("Erreur lors du chargement du client:", error);
+      setError(error instanceof Error ? error.message : "Erreur inconnue");
     } finally {
       setIsLoading(false);
     }
@@ -413,7 +545,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   const handleClientUpdated = (updatedClient: any) => {
     const clientWithEquipments = {
       ...updatedClient,
-      equipments: updatedClient.equipments || client?.equipments || []
+      equipments: updatedClient.equipments || client?.equipments || [],
     };
     setClient(clientWithEquipments);
   };
@@ -426,13 +558,13 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
     if (client) {
       setClient({
         ...client,
-        equipments: [...client.equipments, newEquipment]
+        equipments: [...client.equipments, newEquipment],
       });
     }
   };
 
   const handleEditEquipment = (equipmentId: string) => {
-    const equipment = client?.equipments.find(eq => eq.id === equipmentId);
+    const equipment = client?.equipments.find((eq) => eq.id === equipmentId);
     if (equipment) {
       setEquipmentToEdit(equipment);
       setIsEditEquipmentModalOpen(true);
@@ -443,9 +575,9 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
     if (client) {
       setClient({
         ...client,
-        equipments: client.equipments.map(eq => 
+        equipments: client.equipments.map((eq) =>
           eq.id === updatedEquipment.id ? updatedEquipment : eq
-        )
+        ),
       });
     }
   };
@@ -455,7 +587,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   };
 
   const handleVerificationUpdated = () => {
-    console.log('Verification updated - modal en cours');
+    console.log("Verification updated - modal en cours");
   };
 
   const handleVerificationCompleted = () => {
@@ -464,53 +596,57 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   };
 
   const handleDeleteEquipment = async (equipmentId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cet équipement ?')) {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cet équipement ?")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/equipments/${equipmentId}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
 
       if (response.ok) {
         fetchClient();
       } else {
         const result = await response.json();
-        alert(result.error || 'Erreur lors de la suppression');
+        alert(result.error || "Erreur lors de la suppression");
       }
     } catch (error) {
-      console.error('Erreur lors de la suppression de l\'équipement:', error);
-      alert('Erreur lors de la suppression de l\'équipement');
+      console.error("Erreur lors de la suppression de l'équipement:", error);
+      alert("Erreur lors de la suppression de l'équipement");
     }
   };
 
   const handleDeleteClient = async () => {
     if (!client) return;
-    
+
     if (client.equipments.length > 0) {
-      alert('Impossible de supprimer un client qui possède des équipements.');
+      alert("Impossible de supprimer un client qui possède des équipements.");
       return;
     }
 
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.')) {
+    if (
+      !confirm(
+        "Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible."
+      )
+    ) {
       return;
     }
 
     try {
       const response = await fetch(`/api/clients/${params.id}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
 
       if (response.ok) {
-        router.push('/clients');
+        router.push("/clients");
       } else {
         const result = await response.json();
-        alert(result.error || 'Erreur lors de la suppression');
+        alert(result.error || "Erreur lors de la suppression");
       }
     } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-      alert('Erreur lors de la suppression du client');
+      console.error("Erreur lors de la suppression:", error);
+      alert("Erreur lors de la suppression du client");
     }
   };
 
@@ -520,9 +656,24 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="flex items-center">
-              <svg className="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              <svg
+                className="animate-spin h-8 w-8 text-blue-600"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
               </svg>
               <p className="ml-3 text-gray-600">Chargement du client...</p>
             </div>
@@ -579,7 +730,9 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                 <ArrowLeftIcon className="h-5 w-5" />
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{client.name}</h1>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {client.name}
+                </h1>
                 <p className="text-gray-600">{client.location}</p>
               </div>
             </div>
@@ -596,7 +749,11 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                 onClick={handleDeleteClient}
                 disabled={client.equipments.length > 0}
                 className="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title={client.equipments.length > 0 ? 'Supprimez d\'abord tous les équipements' : 'Supprimer le client'}
+                title={
+                  client.equipments.length > 0
+                    ? "Supprimez d'abord tous les équipements"
+                    : "Supprimer le client"
+                }
               >
                 <TrashIcon className="h-4 w-4 mr-2" />
                 Supprimer
@@ -620,7 +777,8 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                     Mise à jour des vérifications
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Mettre à jour la date de dernière vérification de tous les équipements en une seule fois
+                    Mettre à jour la date de dernière vérification de tous les
+                    équipements en une seule fois
                   </p>
                 </div>
                 <button
@@ -658,7 +816,9 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
           {client.equipments.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
               <p className="text-gray-500 text-lg mb-2">Aucun équipement</p>
-              <p className="text-gray-400 mb-4">Ce client n'a pas encore d'équipement enregistré</p>
+              <p className="text-gray-400 mb-4">
+                Ce client n'a pas encore d'équipement enregistré
+              </p>
               <button
                 onClick={handleAddEquipment}
                 className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
@@ -672,32 +832,54 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
               {client.equipments.map((equipment) => {
                 const status = equipmentStatuses.get(equipment.id);
                 return (
-                  <div key={equipment.id} className={status?.cardClasses || getEquipmentCardClasses(equipment)}>
+                  <div
+                    key={equipment.id}
+                    className={
+                      status?.cardClasses || getEquipmentCardClasses(equipment)
+                    }
+                  >
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h3 className={`text-lg font-medium ${status?.nameClasses || getEquipmentNameClasses(equipment)}`}>
+                        <h3
+                          className={`text-lg font-medium ${
+                            status?.nameClasses ||
+                            getEquipmentNameClasses(equipment)
+                          }`}
+                        >
                           Équipement #{equipment.number}
                           {/* Badges de statut */}
                           {status?.global && (
                             <>
-                              {status.global.statusType === 'validity-expired' && (
+                              {status.global.statusType ===
+                                "validity-expired" && (
                                 <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
                                   ⚠️ Matériel expiré
                                 </span>
                               )}
-                              {status.global.statusType === 'control-expired' && (
+                              {status.global.statusType ===
+                                "control-expired" && (
                                 <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
                                   🔍 Contrôle en retard
                                 </span>
                               )}
-                              {status.global.statusType === 'validity-soon' && (
+                              {status.global.statusType === "validity-soon" && (
                                 <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
                                   📅 Expire bientôt
                                 </span>
                               )}
-                              {status.global.statusType === 'control-soon' && (
+                              {status.global.statusType === "control-soon" && (
                                 <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
                                   📋 Contrôle bientôt
+                                </span>
+                              )}
+                              {status.global.statusType === "recharge-expired" && (
+                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                  🔋 Recharge en retard
+                                </span>
+                              )}
+                              {status.global.statusType === "recharge-soon" && (
+                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+                                  ⚡ Recharge bientôt
                                 </span>
                               )}
                             </>
@@ -707,34 +889,99 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                           Type: {equipment.material.type}
                         </p>
                       </div>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        equipment.material.type === 'PA' ? 'bg-blue-100 text-blue-800' :
-                        equipment.material.type === 'PP' ? 'bg-green-100 text-green-800' :
-                        'bg-orange-100 text-orange-800'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          equipment.material.type === "PA"
+                            ? "bg-blue-100 text-blue-800"
+                            : equipment.material.type === "PP"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-orange-100 text-orange-800"
+                        }`}
+                      >
                         {equipment.material.type}
                       </span>
                     </div>
 
                     <div className="space-y-2 text-sm">
-                      <div>
-                        <span className="text-gray-500">Mise en service:</span>
-                        <span className="ml-2 text-gray-900">
-                          {new Date(equipment.commissioningDate).toLocaleDateString('fr-FR')}
-                        </span>
-                      </div>
-                      
+                      {/* Affichage conditionnel selon le type d'équipement */}
+                      {equipment.material.type === "PA" ? (
+                        /* Affichage pour les équipements PA - Prochaine recharge */
+                        <div>
+                          <span className="text-gray-500">
+                            Prochaine recharge:
+                          </span>
+                          <span
+                            className={`ml-2 font-medium ${
+                              status?.recharge?.isExpired
+                                ? "text-red-600"
+                                : status?.recharge?.isSoon
+                                ? "text-yellow-600"
+                                : "text-green-600"
+                            }`}
+                          >
+                            {status?.recharge?.isApplicable && status?.recharge?.nextRechargeDate
+                              ? new Date(
+                                  status.recharge.nextRechargeDate
+                                ).toLocaleDateString("fr-FR")
+                              : "Non applicable"}
+                            {status?.recharge?.isExpired && (
+                              <span className="text-red-600 text-xs ml-1">
+                                (en retard de {status.recharge.daysDifference} j)
+                              </span>
+                            )}
+                            {status?.recharge?.isSoon && (
+                              <span className="text-yellow-600 text-xs ml-1">
+                                (dans {status.recharge.daysDifference} j)
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      ) : (
+                        /* Affichage pour les autres équipements - Mise en service et Dernière vérification */
+                        <>
+                          <div>
+                            <span className="text-gray-500">Mise en service:</span>
+                            <span className="ml-2 text-gray-900">
+                              {new Date(
+                                equipment.commissioningDate
+                              ).toLocaleDateString("fr-FR")}
+                            </span>
+                          </div>
+
+                          {equipment.lastVerificationDate && (
+                            <div>
+                              <span className="text-gray-500">
+                                Dernière vérification:
+                              </span>
+                              <span className="ml-2 text-gray-900">
+                                {new Date(
+                                  equipment.lastVerificationDate
+                                ).toLocaleDateString("fr-FR")}
+                              </span>
+                            </div>
+                          )}
+                        </>
+                      )}
+
                       {/* Informations de validité */}
                       <div>
-                        <span className="text-gray-500">Validité matériel:</span>
-                        <span className={`ml-2 font-medium ${
-                          status?.validity?.isExpired ? 'text-red-600' : 
-                          status?.validity?.isSoon ? 'text-yellow-600' : 'text-green-600'
-                        }`}>
-                          {status?.validity?.expirationDate 
-                            ? new Date(status.validity.expirationDate).toLocaleDateString('fr-FR')
-                            : 'Non calculée'
-                          }
+                        <span className="text-gray-500">
+                          Validité matériel:
+                        </span>
+                        <span
+                          className={`ml-2 font-medium ${
+                            status?.validity?.isExpired
+                              ? "text-red-600"
+                              : status?.validity?.isSoon
+                              ? "text-yellow-600"
+                              : "text-green-600"
+                          }`}
+                        >
+                          {status?.validity?.expirationDate
+                            ? new Date(
+                                status.validity.expirationDate
+                              ).toLocaleDateString("fr-FR")
+                            : "Non calculée"}
                           {status?.validity?.isExpired && (
                             <span className="text-red-600 text-xs ml-1">
                               (expiré il y a {status.validity.daysDifference} j)
@@ -750,15 +997,23 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
 
                       {/* Informations de contrôle */}
                       <div>
-                        <span className="text-gray-500">Prochain contrôle:</span>
-                        <span className={`ml-2 font-medium ${
-                          status?.control?.isExpired ? 'text-red-600' : 
-                          status?.control?.isSoon ? 'text-yellow-600' : 'text-green-600'
-                        }`}>
-                          {status?.control?.nextControlDate 
-                            ? new Date(status.control.nextControlDate).toLocaleDateString('fr-FR')
-                            : 'Non calculé'
-                          }
+                        <span className="text-gray-500">
+                          Prochain contrôle:
+                        </span>
+                        <span
+                          className={`ml-2 font-medium ${
+                            status?.control?.isExpired
+                              ? "text-red-600"
+                              : status?.control?.isSoon
+                              ? "text-yellow-600"
+                              : "text-green-600"
+                          }`}
+                        >
+                          {status?.control?.nextControlDate
+                            ? new Date(
+                                status.control.nextControlDate
+                              ).toLocaleDateString("fr-FR")
+                            : "Non calculé"}
                           {status?.control?.isExpired && (
                             <span className="text-red-600 text-xs ml-1">
                               (en retard de {status.control.daysDifference} j)
@@ -771,39 +1026,34 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                           )}
                         </span>
                       </div>
-                      
-                      {equipment.lastVerificationDate && (
-                        <div>
-                          <span className="text-gray-500">Dernière vérification:</span>
-                          <span className="ml-2 text-gray-900">
-                            {new Date(equipment.lastVerificationDate).toLocaleDateString('fr-FR')}
-                          </span>
-                        </div>
-                      )}
 
                       {equipment.volume && (
                         <div>
                           <span className="text-gray-500">Volume:</span>
-                          <span className="ml-2 text-gray-900">{equipment.volume}L</span>
+                          <span className="ml-2 text-gray-900">
+                            {equipment.volume}L
+                          </span>
                         </div>
                       )}
 
                       {equipment.notes && (
                         <div>
                           <span className="text-gray-500">Notes:</span>
-                          <p className="text-gray-900 text-xs mt-1">{equipment.notes}</p>
+                          <p className="text-gray-900 text-xs mt-1">
+                            {equipment.notes}
+                          </p>
                         </div>
                       )}
                     </div>
 
                     <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end space-x-2">
-                      <button 
+                      <button
                         onClick={() => handleEditEquipment(equipment.id)}
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
                       >
                         Modifier
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDeleteEquipment(equipment.id)}
                         className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
                       >
@@ -825,7 +1075,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
         client={client}
         onClientUpdated={handleClientUpdated}
       />
-      
+
       <AddEquipmentModal
         isOpen={isAddEquipmentModalOpen}
         onClose={() => setIsAddEquipmentModalOpen(false)}

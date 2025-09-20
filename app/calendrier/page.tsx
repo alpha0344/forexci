@@ -83,6 +83,104 @@ interface ClientAction {
 }
 
 // ============================================================================
+// HELPER FUNCTIONS POUR LES CALCULS DE DATES
+// ============================================================================
+
+/**
+ * Détermine le statut de contrôle d'un équipement
+ */
+const getEquipmentControlStatus = (equipment: ClientEquipment) => {
+  const commissioningDate = new Date(equipment.commissioningDate);
+  const today = new Date();
+
+  let nextControlDate: Date;
+
+  if (equipment.lastVerificationDate) {
+    const lastVerif = new Date(equipment.lastVerificationDate);
+    nextControlDate = new Date(
+      lastVerif.getTime() +
+        equipment.material.timeBeforeControl * 24 * 60 * 60 * 1000
+    );
+  } else {
+    nextControlDate = new Date(
+      commissioningDate.getTime() +
+        equipment.material.timeBeforeControl * 24 * 60 * 60 * 1000
+    );
+  }
+
+  const isExpired = nextControlDate < today;
+  const daysDifference = Math.ceil(
+    Math.abs(nextControlDate.getTime() - today.getTime()) /
+      (1000 * 60 * 60 * 24)
+  );
+
+  const isSoon = !isExpired && daysDifference <= 30;
+
+  return {
+    isExpired,
+    isSoon,
+    daysDifference,
+    nextControlDate,
+    isValid: !isExpired,
+    hasNeverBeenControlled: !equipment.lastVerificationDate,
+  };
+};
+
+/**
+ * Détermine le statut de recharge d'un équipement PA
+ */
+const getEquipmentRechargeStatus = (equipment: ClientEquipment) => {
+  // Vérifier si l'équipement est de type PA et a un timeBeforeReload défini
+  if (equipment.material.type !== "PA" || !equipment.material.timeBeforeReload) {
+    return {
+      isApplicable: false,
+      isExpired: false,
+      isSoon: false,
+      daysDifference: 0,
+      nextRechargeDate: null,
+      isValid: true,
+      hasNeverBeenRecharged: false,
+    };
+  }
+
+  const commissioningDate = new Date(equipment.commissioningDate);
+  const today = new Date();
+
+  let nextRechargeDate: Date;
+
+  if (equipment.lastRechargeDate) {
+    const lastRecharge = new Date(equipment.lastRechargeDate);
+    nextRechargeDate = new Date(
+      lastRecharge.getTime() +
+        equipment.material.timeBeforeReload * 24 * 60 * 60 * 1000
+    );
+  } else {
+    nextRechargeDate = new Date(
+      commissioningDate.getTime() +
+        equipment.material.timeBeforeReload * 24 * 60 * 60 * 1000
+    );
+  }
+
+  const isExpired = nextRechargeDate < today;
+  const daysDifference = Math.ceil(
+    Math.abs(nextRechargeDate.getTime() - today.getTime()) /
+      (1000 * 60 * 60 * 24)
+  );
+
+  const isSoon = !isExpired && daysDifference <= 30;
+
+  return {
+    isApplicable: true,
+    isExpired,
+    isSoon,
+    daysDifference,
+    nextRechargeDate,
+    isValid: !isExpired,
+    hasNeverBeenRecharged: !equipment.lastRechargeDate,
+  };
+};
+
+// ============================================================================
 // COMPOSANTS
 // ============================================================================
 
@@ -181,20 +279,55 @@ const EquipmentActionBadge: React.FC<EquipmentActionBadgeProps> = ({
 }) => {
   const getActionColor = () => {
     if (action.isOverdue) {
-      return "bg-red-100 text-red-800 border-red-200";
+      // Différencier les couleurs selon le type d'action
+      if (action.actionType === "validity") {
+        return "bg-red-100 text-red-800 border-red-200";
+      } else if (action.actionType === "control") {
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      } else if (action.actionType === "recharge") {
+        return "bg-purple-100 text-purple-800 border-purple-200";
+      }
     } else {
-      return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      // Actions à venir
+      if (action.actionType === "validity") {
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      } else if (action.actionType === "control") {
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      } else if (action.actionType === "recharge") {
+        return "bg-green-100 text-green-800 border-green-200";
+      }
     }
+    return "bg-gray-100 text-gray-800 border-gray-200";
   };
 
   const getActionIcon = () => {
-    if (action.isOverdue) return "⚠️";
-    return "📅";
+    if (action.isOverdue) {
+      if (action.actionType === "validity") return "⚠️";
+      if (action.actionType === "control") return "🔧";
+      if (action.actionType === "recharge") return "🔋";
+    } else {
+      if (action.actionType === "validity") return "📅";
+      if (action.actionType === "control") return "🔍";
+      if (action.actionType === "recharge") return "⚡";
+    }
+    return "📋";
   };
 
   const getActionLabel = () => {
-    if (action.isOverdue) return "Matériel expiré";
+    if (action.isOverdue) {
+      if (action.actionType === "validity") return "Matériel expiré";
+      if (action.actionType === "control") return "Contrôle en retard";
+      if (action.actionType === "recharge") return "Recharge en retard";
+    } else {
+      if (action.actionType === "validity") return "Expiration prochaine";
+      if (action.actionType === "control") return "Contrôle à venir";
+      if (action.actionType === "recharge") return "Recharge à venir";
+    }
     return "Action à venir";
+  };
+
+  const getActionDescription = () => {
+    return action.actionLabel;
   };
 
   return (
@@ -203,14 +336,23 @@ const EquipmentActionBadge: React.FC<EquipmentActionBadgeProps> = ({
     >
       <span className="mr-1">{getActionIcon()}</span>
       <span className="mr-2">#{action.equipmentNumber}</span>
-      <span>{getActionLabel()}</span>
+      <span className="mr-2">{getActionDescription()}</span>
+      <span className="text-xs opacity-75">({getActionLabel()})</span>
       {action.isOverdue && (
-        <span className="ml-2 text-red-600 font-semibold">
+        <span className={`ml-2 font-semibold ${
+          action.actionType === "validity" ? "text-red-600" : 
+          action.actionType === "control" ? "text-orange-600" : 
+          action.actionType === "recharge" ? "text-purple-600" : "text-gray-600"
+        }`}>
           ({action.daysDifference} j retard)
         </span>
       )}
       {!action.isOverdue && (
-        <span className="ml-2 text-yellow-600 font-medium">
+        <span className={`ml-2 font-medium ${
+          action.actionType === "validity" ? "text-yellow-600" : 
+          action.actionType === "control" ? "text-blue-600" : 
+          action.actionType === "recharge" ? "text-green-600" : "text-gray-600"
+        }`}>
           (dans {action.daysDifference} j)
         </span>
       )}
@@ -281,12 +423,12 @@ const ClientActionCard: React.FC<ClientActionCardProps> = ({
       {/* Actions à réaliser */}
       <div>
         <h4 className="text-sm font-medium text-gray-700 mb-3">
-          Matériels à renouveler :
+          Actions à réaliser :
         </h4>
         <div className="flex flex-wrap gap-2">
           {clientAction.actions.map((action, index) => (
             <EquipmentActionBadge
-              key={`${action.equipmentId}-${index}`}
+              key={`${action.equipmentId}-${action.actionType}-${index}`}
               action={action}
             />
           ))}
@@ -415,7 +557,7 @@ export default function CalendrierPage() {
   }, []);
 
   // ============================================================================
-  // LOGIQUE DE CALCUL DES ACTIONS - VALIDITÉ UNIQUEMENT
+  // LOGIQUE DE CALCUL DES ACTIONS - VALIDITÉ ET CONTRÔLE
   // ============================================================================
 
   const clientsWithActions = useMemo((): ClientAction[] => {
@@ -432,6 +574,10 @@ export default function CalendrierPage() {
       const actions: ClientAction["actions"] = [];
 
       client.equipments.forEach((equipment) => {
+        // ========================================================================
+        // CALCUL POUR LA VALIDITÉ DU MATÉRIEL
+        // ========================================================================
+        
         // Calculer la date d'expiration du matériel
         const commissioningDate = new Date(equipment.commissioningDate);
         const validityDays = equipment.material.validityTime;
@@ -439,18 +585,18 @@ export default function CalendrierPage() {
           commissioningDate.getTime() + validityDays * 24 * 60 * 60 * 1000
         );
 
-        // Déterminer si cet équipement doit être affiché
-        let shouldDisplay = false;
-        let isOverdue = false;
-        let daysDifference = 0;
+        // Déterminer si cet équipement doit être affiché pour la validité
+        let shouldDisplayValidity = false;
+        let isValidityOverdue = false;
+        let validityDaysDifference = 0;
 
         // Cas 1: L'équipement expire pendant le mois sélectionné
         if (expirationDate >= startOfMonth && expirationDate <= endOfMonth) {
-          shouldDisplay = true;
-          daysDifference = Math.ceil(
+          shouldDisplayValidity = true;
+          validityDaysDifference = Math.ceil(
             (expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
           );
-          isOverdue = expirationDate < today;
+          isValidityOverdue = expirationDate < today;
         }
         // Cas 2: L'équipement a déjà expiré ET on regarde un mois actuel ou passé
         else if (expirationDate < today) {
@@ -463,16 +609,16 @@ export default function CalendrierPage() {
           
           // N'afficher les matériels expirés que pour les mois actuels/passés
           if (isCurrentOrPastMonth) {
-            shouldDisplay = true;
-            isOverdue = true;
-            daysDifference = Math.ceil(
+            shouldDisplayValidity = true;
+            isValidityOverdue = true;
+            validityDaysDifference = Math.ceil(
               (today.getTime() - expirationDate.getTime()) / (1000 * 60 * 60 * 24)
             );
           }
         }
 
-        // Si on doit afficher cet équipement, l'ajouter aux actions
-        if (shouldDisplay) {
+        // Si on doit afficher cet équipement pour la validité, l'ajouter aux actions
+        if (shouldDisplayValidity) {
           actions.push({
             equipmentId: equipment.id,
             equipmentNumber: equipment.number,
@@ -480,23 +626,140 @@ export default function CalendrierPage() {
             actionType: "validity",
             actionLabel: "Renouvellement matériel",
             dueDate: expirationDate,
-            isOverdue,
-            daysDifference: Math.abs(daysDifference),
+            isOverdue: isValidityOverdue,
+            daysDifference: Math.abs(validityDaysDifference),
             priority: 1, // Toujours priorité 1 pour la validité
           });
+        }
+
+        // ========================================================================
+        // CALCUL POUR LE CONTRÔLE DU MATÉRIEL
+        // ========================================================================
+        
+        const controlStatus = getEquipmentControlStatus(equipment);
+        const nextControlDate = controlStatus.nextControlDate;
+
+        // Déterminer si cet équipement doit être affiché pour le contrôle
+        let shouldDisplayControl = false;
+        let isControlOverdue = false;
+        let controlDaysDifference = 0;
+
+        // Cas 1: Le contrôle est dû pendant le mois sélectionné
+        if (nextControlDate >= startOfMonth && nextControlDate <= endOfMonth) {
+          shouldDisplayControl = true;
+          controlDaysDifference = Math.ceil(
+            (nextControlDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+          );
+          isControlOverdue = nextControlDate < today;
+        }
+        // Cas 2: Le contrôle est déjà en retard ET on regarde un mois actuel ou passé
+        else if (nextControlDate < today) {
+          // Calculer si le mois sélectionné est antérieur ou égal au mois actuel
+          const currentMonth = today.getMonth() + 1;
+          const currentYear = today.getFullYear();
+          const isCurrentOrPastMonth = 
+            selectedYear < currentYear || 
+            (selectedYear === currentYear && selectedMonth <= currentMonth);
+          
+          // N'afficher les contrôles en retard que pour les mois actuels/passés
+          if (isCurrentOrPastMonth) {
+            shouldDisplayControl = true;
+            isControlOverdue = true;
+            controlDaysDifference = Math.ceil(
+              (today.getTime() - nextControlDate.getTime()) / (1000 * 60 * 60 * 24)
+            );
+          }
+        }
+
+        // Si on doit afficher cet équipement pour le contrôle, l'ajouter aux actions
+        if (shouldDisplayControl) {
+          actions.push({
+            equipmentId: equipment.id,
+            equipmentNumber: equipment.number,
+            materialType: equipment.material.type,
+            actionType: "control",
+            actionLabel: controlStatus.hasNeverBeenControlled ? "Premier contrôle" : "Contrôle périodique",
+            dueDate: nextControlDate,
+            isOverdue: isControlOverdue,
+            daysDifference: Math.abs(controlDaysDifference),
+            priority: isControlOverdue ? 1 : 2, // Priorité 1 si en retard, 2 sinon
+          });
+        }
+
+        // ========================================================================
+        // CALCUL POUR LA RECHARGE DU MATÉRIEL PA
+        // ========================================================================
+        
+        const rechargeStatus = getEquipmentRechargeStatus(equipment);
+        
+        // Traiter uniquement les équipements PA avec timeBeforeReload défini
+        if (rechargeStatus.isApplicable && rechargeStatus.nextRechargeDate) {
+          const nextRechargeDate = rechargeStatus.nextRechargeDate;
+
+          // Déterminer si cet équipement doit être affiché pour la recharge
+          let shouldDisplayRecharge = false;
+          let isRechargeOverdue = false;
+          let rechargeDaysDifference = 0;
+
+          // Cas 1: La recharge est due pendant le mois sélectionné
+          if (nextRechargeDate >= startOfMonth && nextRechargeDate <= endOfMonth) {
+            shouldDisplayRecharge = true;
+            rechargeDaysDifference = Math.ceil(
+              (nextRechargeDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+            );
+            isRechargeOverdue = nextRechargeDate < today;
+          }
+          // Cas 2: La recharge est déjà en retard ET on regarde un mois actuel ou passé
+          else if (nextRechargeDate < today) {
+            // Calculer si le mois sélectionné est antérieur ou égal au mois actuel
+            const currentMonth = today.getMonth() + 1;
+            const currentYear = today.getFullYear();
+            const isCurrentOrPastMonth = 
+              selectedYear < currentYear || 
+              (selectedYear === currentYear && selectedMonth <= currentMonth);
+            
+            // N'afficher les recharges en retard que pour les mois actuels/passés
+            if (isCurrentOrPastMonth) {
+              shouldDisplayRecharge = true;
+              isRechargeOverdue = true;
+              rechargeDaysDifference = Math.ceil(
+                (today.getTime() - nextRechargeDate.getTime()) / (1000 * 60 * 60 * 24)
+              );
+            }
+          }
+
+          // Si on doit afficher cet équipement pour la recharge, l'ajouter aux actions
+          if (shouldDisplayRecharge) {
+            actions.push({
+              equipmentId: equipment.id,
+              equipmentNumber: equipment.number,
+              materialType: equipment.material.type,
+              actionType: "recharge",
+              actionLabel: rechargeStatus.hasNeverBeenRecharged ? "Première recharge" : "Recharge périodique",
+              dueDate: nextRechargeDate,
+              isOverdue: isRechargeOverdue,
+              daysDifference: Math.abs(rechargeDaysDifference),
+              priority: isRechargeOverdue ? 1 : 3, // Priorité 1 si en retard, 3 sinon (moins urgent que contrôle)
+            });
+          }
         }
       });
 
       // Si ce client a des actions, l'ajouter à la liste
       if (actions.length > 0) {
-        // Trier les actions par urgence (en retard d'abord) puis par date d'expiration
+        // Trier les actions par urgence (en retard d'abord) puis par date d'échéance
         actions.sort((a, b) => {
           // Prioriser les actions en retard
           if (a.isOverdue && !b.isOverdue) return -1;
           if (!a.isOverdue && b.isOverdue) return 1;
-          // Puis trier par date d'expiration
+          // Puis par priorité (validité avant contrôle)
+          if (a.priority !== b.priority) return a.priority - b.priority;
+          // Puis trier par date d'échéance
           return a.dueDate.getTime() - b.dueDate.getTime();
         });
+
+        // Déterminer la priorité la plus élevée pour ce client
+        const highestPriority = Math.min(...actions.map(action => action.priority)) as 1 | 2 | 3;
 
         clientActions.push({
           clientId: client.id,
@@ -506,12 +769,12 @@ export default function CalendrierPage() {
           phone: client.phone,
           actions,
           totalActions: actions.length,
-          highestPriority: 1, // Toujours priorité 1 pour la validité
+          highestPriority,
         });
       }
     });
 
-    // Trier les clients par urgence (ceux avec actions en retard d'abord) puis par nombre d'actions
+    // Trier les clients par urgence (ceux avec actions en retard d'abord) puis par priorité
     return clientActions.sort((a, b) => {
       const aHasOverdue = a.actions.some(action => action.isOverdue);
       const bHasOverdue = b.actions.some(action => action.isOverdue);
@@ -519,6 +782,9 @@ export default function CalendrierPage() {
       // Prioriser les clients avec des actions en retard
       if (aHasOverdue && !bHasOverdue) return -1;
       if (!aHasOverdue && bHasOverdue) return 1;
+      
+      // Puis par priorité la plus élevée
+      if (a.highestPriority !== b.highestPriority) return a.highestPriority - b.highestPriority;
       
       // Puis trier par nombre d'actions
       return b.totalActions - a.totalActions;
@@ -605,10 +871,10 @@ export default function CalendrierPage() {
         {/* En-tête */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Calendrier de Validité
+            Calendrier de Validité et Contrôles
           </h1>
           <p className="text-gray-600">
-            Suivi des dates d'expiration et renouvellements de matériel
+            Suivi des dates d'expiration, renouvellements de matériel et contrôles périodiques
           </p>
         </div>
 
