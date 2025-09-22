@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useState } from "react";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
 export interface AddClientModalProps {
   isOpen: boolean;
@@ -24,24 +24,28 @@ interface FormErrors {
   general?: string;
 }
 
-export default function AddClientModal({ isOpen, onClose, onClientAdded }: AddClientModalProps) {
+export default function AddClientModal({
+  isOpen,
+  onClose,
+  onClientAdded,
+}: AddClientModalProps) {
   const [formData, setFormData] = useState<FormData>({
-    name: '',
-    location: '',
-    contactName: '',
-    phone: ''
+    name: "",
+    location: "",
+    contactName: "",
+    phone: "",
   });
-  
+
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Réinitialiser le formulaire quand le modal s'ouvre/ferme
   const resetForm = () => {
     setFormData({
-      name: '',
-      location: '',
-      contactName: '',
-      phone: ''
+      name: "",
+      location: "",
+      contactName: "",
+      phone: "",
     });
     setErrors({});
     setIsSubmitting(false);
@@ -58,19 +62,22 @@ export default function AddClientModal({ isOpen, onClose, onClientAdded }: AddCl
     const newErrors: FormErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Le nom de l\'entreprise est requis';
+      newErrors.name = "Le nom de l'entreprise est requis";
     }
 
     if (!formData.location.trim()) {
-      newErrors.location = 'La localisation est requise';
+      newErrors.location = "La localisation est requise";
     }
 
     if (!formData.contactName.trim()) {
-      newErrors.contactName = 'Le nom du contact est requis';
+      newErrors.contactName = "Le nom du contact est requis";
     }
 
-    if (formData.phone && !formData.phone.match(/^(?:\+33|0)[1-9](?:[0-9]{8})$/)) {
-      newErrors.phone = 'Format de téléphone invalide (ex: 01 23 45 67 89)';
+    if (
+      formData.phone &&
+      !formData.phone.match(/^(?:\+33|0)[1-9](?:[0-9]{8})$/)
+    ) {
+      newErrors.phone = "Format de téléphone invalide (ex: 01 23 45 67 89)";
     }
 
     setErrors(newErrors);
@@ -80,33 +87,35 @@ export default function AddClientModal({ isOpen, onClose, onClientAdded }: AddCl
   // Gestionnaire de soumission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsSubmitting(true);
     setErrors({});
 
     try {
-      const response = await fetch('/api/clients', {
-        method: 'POST',
+      const response = await fetch("/api/clients", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: formData.name.trim(),
           location: formData.location.trim(),
           contactName: formData.contactName.trim(),
-          phone: formData.phone.trim() || undefined
-        })
+          phone: formData.phone.trim() || undefined,
+        }),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
         if (response.status === 409) {
-          setErrors({ general: 'Un client avec ce nom et cette localisation existe déjà' });
+          setErrors({
+            general: "Un client avec ce nom et cette localisation existe déjà",
+          });
         } else {
-          setErrors({ general: result.error || 'Une erreur est survenue' });
+          setErrors({ general: result.error || "Une erreur est survenue" });
         }
         return;
       }
@@ -115,32 +124,33 @@ export default function AddClientModal({ isOpen, onClose, onClientAdded }: AddCl
       onClientAdded(result.data);
       handleClose();
     } catch (error) {
-      console.error('Erreur lors de la création du client:', error);
-      setErrors({ general: 'Erreur de connexion. Veuillez réessayer.' });
+      console.error("Erreur lors de la création du client:", error);
+      setErrors({ general: "Erreur de connexion. Veuillez réessayer." });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // Gestionnaire de changement des champs
-  const handleInputChange = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
-    // Supprimer l'erreur du champ modifié
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
-    }
-  };
+  const handleInputChange =
+    (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+      // Supprimer l'erreur du champ modifié
+      if (errors[field]) {
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
+      }
+    };
 
   if (!isOpen) return null;
 
   return (
     <>
       {/* Overlay */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 z-40 transition-opacity"
         onClick={handleClose}
       />
-      
+
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
@@ -169,16 +179,19 @@ export default function AddClientModal({ isOpen, onClose, onClientAdded }: AddCl
 
             {/* Nom de l'entreprise */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Nom de l'entreprise *
               </label>
               <input
                 type="text"
                 id="name"
                 value={formData.name}
-                onChange={handleInputChange('name')}
+                onChange={handleInputChange("name")}
                 className={`block w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.name ? 'border-red-300' : 'border-gray-300'
+                  errors.name ? "border-red-300" : "border-gray-300"
                 }`}
                 placeholder="ex: Entreprise Alpha"
                 disabled={isSubmitting}
@@ -190,16 +203,19 @@ export default function AddClientModal({ isOpen, onClose, onClientAdded }: AddCl
 
             {/* Localisation */}
             <div>
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="location"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Localisation *
               </label>
               <input
                 type="text"
                 id="location"
                 value={formData.location}
-                onChange={handleInputChange('location')}
+                onChange={handleInputChange("location")}
                 className={`block w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.location ? 'border-red-300' : 'border-gray-300'
+                  errors.location ? "border-red-300" : "border-gray-300"
                 }`}
                 placeholder="ex: Paris 75001"
                 disabled={isSubmitting}
@@ -211,37 +227,45 @@ export default function AddClientModal({ isOpen, onClose, onClientAdded }: AddCl
 
             {/* Nom du contact */}
             <div>
-              <label htmlFor="contactName" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="contactName"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Nom du contact principal *
               </label>
               <input
                 type="text"
                 id="contactName"
                 value={formData.contactName}
-                onChange={handleInputChange('contactName')}
+                onChange={handleInputChange("contactName")}
                 className={`block w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.contactName ? 'border-red-300' : 'border-gray-300'
+                  errors.contactName ? "border-red-300" : "border-gray-300"
                 }`}
                 placeholder="ex: Jean Dupont"
                 disabled={isSubmitting}
               />
               {errors.contactName && (
-                <p className="mt-1 text-sm text-red-600">{errors.contactName}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.contactName}
+                </p>
               )}
             </div>
 
             {/* Téléphone */}
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Téléphone
               </label>
               <input
                 type="tel"
                 id="phone"
                 value={formData.phone}
-                onChange={handleInputChange('phone')}
+                onChange={handleInputChange("phone")}
                 className={`block w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.phone ? 'border-red-300' : 'border-gray-300'
+                  errors.phone ? "border-red-300" : "border-gray-300"
                 }`}
                 placeholder="ex: 01 23 45 67 89"
                 disabled={isSubmitting}
@@ -271,14 +295,29 @@ export default function AddClientModal({ isOpen, onClose, onClientAdded }: AddCl
               >
                 {isSubmitting ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      />
                     </svg>
                     Création...
                   </>
                 ) : (
-                  'Créer le client'
+                  "Créer le client"
                 )}
               </button>
             </div>

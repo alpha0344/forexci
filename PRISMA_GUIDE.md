@@ -3,6 +3,7 @@
 ## 🚀 Setup terminé !
 
 Prisma est maintenant configuré dans votre application avec :
+
 - **Base de données** : SQLite (fichier `prisma/dev.db`)
 - **Schéma** : `prisma/schema.prisma`
 - **Client** : Instance réutilisable dans `lib/prisma.ts`
@@ -16,6 +17,7 @@ npx prisma studio
 ```
 
 Cela ouvrira une interface web sur `http://localhost:5555` où vous pourrez :
+
 - Voir toutes vos tables
 - Ajouter/modifier/supprimer des données
 - Explorer les relations
@@ -45,7 +47,7 @@ model Client {
   status      String   @default("ACTIVE") // ACTIVE, INACTIVE, PROSPECT
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   // Relations
   materials   Material[]
   actions     Action[]
@@ -63,7 +65,7 @@ model Material {
   clientId    Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   // Relations
   client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   actions     Action[]
@@ -81,7 +83,7 @@ model Action {
   materialId  Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   // Relations
   client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
   material    Material? @relation(fields: [materialId], references: [id], onDelete: SetNull)
@@ -113,7 +115,7 @@ npx prisma generate
 Dans vos composants ou API routes :
 
 ```typescript
-import { prisma } from '@/lib/prisma'
+import { prisma } from "@/lib/prisma";
 
 // Exemple dans une API route (app/api/clients/route.ts)
 export async function GET() {
@@ -121,30 +123,36 @@ export async function GET() {
     const clients = await prisma.client.findMany({
       include: {
         materials: true,
-        actions: true
-      }
-    })
-    return Response.json(clients)
+        actions: true,
+      },
+    });
+    return Response.json(clients);
   } catch (error) {
-    return Response.json({ error: 'Erreur lors de la récupération des clients' }, { status: 500 })
+    return Response.json(
+      { error: "Erreur lors de la récupération des clients" },
+      { status: 500 },
+    );
   }
 }
 
 // Exemple pour créer un client
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
+    const body = await request.json();
     const client = await prisma.client.create({
       data: {
         name: body.name,
         email: body.email,
         phone: body.phone,
-        company: body.company
-      }
-    })
-    return Response.json(client)
+        company: body.company,
+      },
+    });
+    return Response.json(client);
   } catch (error) {
-    return Response.json({ error: 'Erreur lors de la création du client' }, { status: 500 })
+    return Response.json(
+      { error: "Erreur lors de la création du client" },
+      { status: 500 },
+    );
   }
 }
 ```
@@ -206,5 +214,5 @@ Votre setup Prisma est maintenant complet. Vous pouvez :
 
 1. Lancer `npx prisma studio` pour voir l'interface graphique
 2. Ajouter vos modèles dans `schema.prisma`
-3. Lancer `npx prisma migrate dev --name nom_migration` 
+3. Lancer `npx prisma migrate dev --name nom_migration`
 4. Commencer à utiliser Prisma dans vos composants !

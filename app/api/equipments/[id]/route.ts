@@ -1,18 +1,46 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import { z } from "zod";
 
 const prisma = new PrismaClient();
 
 // Schéma de validation pour la mise à jour d'un équipement
 const updateEquipmentSchema = z.object({
-  number: z.number().int().positive('Le numéro doit être un entier positif').optional(),
-  commissioningDate: z.string().refine((date) => !isNaN(Date.parse(date)), 'Date de mise en service invalide').optional(),
-  lastVerificationDate: z.string().refine((date) => !isNaN(Date.parse(date)), 'Date de dernier contrôle invalide').optional().nullable(),
-  lastRechargeDate: z.string().refine((date) => !isNaN(Date.parse(date)), 'Date de dernière recharge invalide').optional().nullable(),
-  rechargeType: z.enum(['WATER_ADD', 'POWDER']).optional().nullable(),
+  number: z
+    .number()
+    .int()
+    .positive("Le numéro doit être un entier positif")
+    .optional(),
+  commissioningDate: z
+    .string()
+    .refine(
+      (date) => !isNaN(Date.parse(date)),
+      "Date de mise en service invalide",
+    )
+    .optional(),
+  lastVerificationDate: z
+    .string()
+    .refine(
+      (date) => !isNaN(Date.parse(date)),
+      "Date de dernier contrôle invalide",
+    )
+    .optional()
+    .nullable(),
+  lastRechargeDate: z
+    .string()
+    .refine(
+      (date) => !isNaN(Date.parse(date)),
+      "Date de dernière recharge invalide",
+    )
+    .optional()
+    .nullable(),
+  rechargeType: z.enum(["WATER_ADD", "POWDER"]).optional().nullable(),
   volume: z.number().int().positive().optional().nullable(),
-  notes: z.string().max(500, 'Les notes ne peuvent pas dépasser 500 caractères').optional().nullable()
+  notes: z
+    .string()
+    .max(500, "Les notes ne peuvent pas dépasser 500 caractères")
+    .optional()
+    .nullable(),
 });
 
 /**
@@ -21,15 +49,15 @@ const updateEquipmentSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const { id } = params;
 
     if (!id) {
       return NextResponse.json(
-        { success: false, error: 'ID équipement requis' },
-        { status: 400 }
+        { success: false, error: "ID équipement requis" },
+        { status: 400 },
       );
     }
 
@@ -37,31 +65,31 @@ export async function GET(
       where: { id },
       include: {
         material: true,
-        client: true
-      }
+        client: true,
+      },
     });
 
     if (!equipment) {
       return NextResponse.json(
-        { success: false, error: 'Équipement non trouvé' },
-        { status: 404 }
+        { success: false, error: "Équipement non trouvé" },
+        { status: 404 },
       );
     }
 
     return NextResponse.json({
       success: true,
       data: equipment,
-      message: 'Équipement récupéré avec succès'
+      message: "Équipement récupéré avec succès",
     });
   } catch (error) {
-    console.error('Erreur lors de la récupération de l\'équipement:', error);
+    console.error("Erreur lors de la récupération de l'équipement:", error);
     return NextResponse.json(
       {
         success: false,
-        error: 'Erreur lors de la récupération de l\'équipement',
-        details: process.env.NODE_ENV === 'development' ? error : undefined
+        error: "Erreur lors de la récupération de l'équipement",
+        details: process.env.NODE_ENV === "development" ? error : undefined,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -72,7 +100,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const { id } = params;
@@ -80,34 +108,34 @@ export async function PUT(
 
     if (!id) {
       return NextResponse.json(
-        { success: false, error: 'ID équipement requis' },
-        { status: 400 }
+        { success: false, error: "ID équipement requis" },
+        { status: 400 },
       );
     }
 
     // Validation des données
     const validationResult = updateEquipmentSchema.safeParse(body);
-    
+
     if (!validationResult.success) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Données de validation invalides',
-          details: validationResult.error.issues
+          error: "Données de validation invalides",
+          details: validationResult.error.issues,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Vérifier que l'équipement existe
     const existingEquipment = await prisma.clientEquipment.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!existingEquipment) {
       return NextResponse.json(
-        { success: false, error: 'Équipement non trouvé' },
-        { status: 404 }
+        { success: false, error: "Équipement non trouvé" },
+        { status: 404 },
       );
     }
 
@@ -116,15 +144,20 @@ export async function PUT(
     // Préparer les données de mise à jour
     const dataToUpdate: any = {};
 
-    if (updateData.number !== undefined) dataToUpdate.number = updateData.number;
+    if (updateData.number !== undefined)
+      dataToUpdate.number = updateData.number;
     if (updateData.commissioningDate !== undefined) {
       dataToUpdate.commissioningDate = new Date(updateData.commissioningDate);
     }
     if (updateData.lastVerificationDate !== undefined) {
-      dataToUpdate.lastVerificationDate = updateData.lastVerificationDate ? new Date(updateData.lastVerificationDate) : null;
+      dataToUpdate.lastVerificationDate = updateData.lastVerificationDate
+        ? new Date(updateData.lastVerificationDate)
+        : null;
     }
     if (updateData.lastRechargeDate !== undefined) {
-      dataToUpdate.lastRechargeDate = updateData.lastRechargeDate ? new Date(updateData.lastRechargeDate) : null;
+      dataToUpdate.lastRechargeDate = updateData.lastRechargeDate
+        ? new Date(updateData.lastRechargeDate)
+        : null;
     }
     if (updateData.rechargeType !== undefined) {
       dataToUpdate.rechargeType = updateData.rechargeType || null;
@@ -142,24 +175,24 @@ export async function PUT(
       data: dataToUpdate,
       include: {
         material: true,
-        client: true
-      }
+        client: true,
+      },
     });
 
     return NextResponse.json({
       success: true,
       data: updatedEquipment,
-      message: 'Équipement mis à jour avec succès'
+      message: "Équipement mis à jour avec succès",
     });
   } catch (error) {
-    console.error('Erreur lors de la mise à jour de l\'équipement:', error);
+    console.error("Erreur lors de la mise à jour de l'équipement:", error);
     return NextResponse.json(
       {
         success: false,
-        error: 'Erreur lors de la mise à jour de l\'équipement',
-        details: process.env.NODE_ENV === 'development' ? error : undefined
+        error: "Erreur lors de la mise à jour de l'équipement",
+        details: process.env.NODE_ENV === "development" ? error : undefined,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -170,48 +203,48 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const { id } = params;
 
     if (!id) {
       return NextResponse.json(
-        { success: false, error: 'ID équipement requis' },
-        { status: 400 }
+        { success: false, error: "ID équipement requis" },
+        { status: 400 },
       );
     }
 
     // Vérifier que l'équipement existe
     const existingEquipment = await prisma.clientEquipment.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!existingEquipment) {
       return NextResponse.json(
-        { success: false, error: 'Équipement non trouvé' },
-        { status: 404 }
+        { success: false, error: "Équipement non trouvé" },
+        { status: 404 },
       );
     }
 
     // Supprimer l'équipement
     await prisma.clientEquipment.delete({
-      where: { id }
+      where: { id },
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Équipement supprimé avec succès'
+      message: "Équipement supprimé avec succès",
     });
   } catch (error) {
-    console.error('Erreur lors de la suppression de l\'équipement:', error);
+    console.error("Erreur lors de la suppression de l'équipement:", error);
     return NextResponse.json(
       {
         success: false,
-        error: 'Erreur lors de la suppression de l\'équipement',
-        details: process.env.NODE_ENV === 'development' ? error : undefined
+        error: "Erreur lors de la suppression de l'équipement",
+        details: process.env.NODE_ENV === "development" ? error : undefined,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

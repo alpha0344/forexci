@@ -5,10 +5,12 @@ Plateforme de trading Forex moderne construite avec Next.js 14, TypeScript et Ta
 ## 🚀 Démarrage rapide
 
 ### Prérequis
+
 - Node.js 18.17.0 ou plus récent
 - npm ou yarn
 
 ### Installation
+
 ```bash
 # Cloner le projet (si applicable)
 git clone <votre-repo>

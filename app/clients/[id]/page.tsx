@@ -68,13 +68,14 @@ const getEquipmentValidityStatus = (equipment: ClientEquipment) => {
   const commissioningDate = new Date(equipment.commissioningDate);
   const validityDays = equipment.material.validityTime;
   const expirationDate = new Date(
-    commissioningDate.getTime() + validityDays * 24 * 60 * 60 * 1000
+    commissioningDate.getTime() + validityDays * 24 * 60 * 60 * 1000,
   );
   const today = new Date();
 
   const isExpired = expirationDate < today;
   const daysDifference = Math.ceil(
-    Math.abs(expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    Math.abs(expirationDate.getTime() - today.getTime()) /
+      (1000 * 60 * 60 * 24),
   );
 
   const isSoon = !isExpired && daysDifference <= 30;
@@ -101,19 +102,19 @@ const getEquipmentControlStatus = (equipment: ClientEquipment) => {
     const lastVerif = new Date(equipment.lastVerificationDate);
     nextControlDate = new Date(
       lastVerif.getTime() +
-        equipment.material.timeBeforeControl * 24 * 60 * 60 * 1000
+        equipment.material.timeBeforeControl * 24 * 60 * 60 * 1000,
     );
   } else {
     nextControlDate = new Date(
       commissioningDate.getTime() +
-        equipment.material.timeBeforeControl * 24 * 60 * 60 * 1000
+        equipment.material.timeBeforeControl * 24 * 60 * 60 * 1000,
     );
   }
 
   const isExpired = nextControlDate < today;
   const daysDifference = Math.ceil(
     Math.abs(nextControlDate.getTime() - today.getTime()) /
-      (1000 * 60 * 60 * 24)
+      (1000 * 60 * 60 * 24),
   );
 
   const isSoon = !isExpired && daysDifference <= 30;
@@ -133,7 +134,10 @@ const getEquipmentControlStatus = (equipment: ClientEquipment) => {
  */
 const getEquipmentRechargeStatus = (equipment: ClientEquipment) => {
   // Vérifier si l'équipement est de type PA et a un timeBeforeReload défini
-  if (equipment.material.type !== "PA" || !equipment.material.timeBeforeReload) {
+  if (
+    equipment.material.type !== "PA" ||
+    !equipment.material.timeBeforeReload
+  ) {
     return {
       isApplicable: false,
       isExpired: false,
@@ -154,19 +158,19 @@ const getEquipmentRechargeStatus = (equipment: ClientEquipment) => {
     const lastRecharge = new Date(equipment.lastRechargeDate);
     nextRechargeDate = new Date(
       lastRecharge.getTime() +
-        equipment.material.timeBeforeReload * 24 * 60 * 60 * 1000
+        equipment.material.timeBeforeReload * 24 * 60 * 60 * 1000,
     );
   } else {
     nextRechargeDate = new Date(
       commissioningDate.getTime() +
-        equipment.material.timeBeforeReload * 24 * 60 * 60 * 1000
+        equipment.material.timeBeforeReload * 24 * 60 * 60 * 1000,
     );
   }
 
   const isExpired = nextRechargeDate < today;
   const daysDifference = Math.ceil(
     Math.abs(nextRechargeDate.getTime() - today.getTime()) /
-      (1000 * 60 * 60 * 24)
+      (1000 * 60 * 60 * 24),
   );
 
   const isSoon = !isExpired && daysDifference <= 30;
@@ -202,8 +206,7 @@ const getEquipmentGlobalStatus = (equipment: ClientEquipment) => {
   else if (controlStatus.isExpired) {
     priority = "important";
     statusType = "control-expired";
-  }
-  else if (rechargeStatus.isApplicable && rechargeStatus.isExpired) {
+  } else if (rechargeStatus.isApplicable && rechargeStatus.isExpired) {
     priority = "important";
     statusType = "recharge-expired";
   }
@@ -216,8 +219,7 @@ const getEquipmentGlobalStatus = (equipment: ClientEquipment) => {
   else if (controlStatus.isSoon) {
     priority = "attention";
     statusType = "control-soon";
-  }
-  else if (rechargeStatus.isApplicable && rechargeStatus.isSoon) {
+  } else if (rechargeStatus.isApplicable && rechargeStatus.isSoon) {
     priority = "attention";
     statusType = "recharge-soon";
   }
@@ -390,7 +392,9 @@ const EquipmentStats: React.FC<EquipmentStatsProps> = ({ equipments }) => {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 text-center">
-        <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.total}</p>
+        <p className="text-xl sm:text-2xl font-bold text-gray-900">
+          {stats.total}
+        </p>
         <p className="text-xs sm:text-sm text-gray-500">Total équipements</p>
       </div>
       <div className="bg-red-50 rounded-lg border border-red-200 p-3 sm:p-4 text-center">
@@ -403,13 +407,17 @@ const EquipmentStats: React.FC<EquipmentStatsProps> = ({ equipments }) => {
         <p className="text-xl sm:text-2xl font-bold text-orange-900">
           {stats.controlExpired}
         </p>
-        <p className="text-xs sm:text-sm text-orange-600">Contrôles en retard</p>
+        <p className="text-xs sm:text-sm text-orange-600">
+          Contrôles en retard
+        </p>
       </div>
       <div className="bg-purple-50 rounded-lg border border-purple-200 p-3 sm:p-4 text-center">
         <p className="text-xl sm:text-2xl font-bold text-purple-900">
           {stats.rechargeExpired}
         </p>
-        <p className="text-xs sm:text-sm text-purple-600">Recharges en retard</p>
+        <p className="text-xs sm:text-sm text-purple-600">
+          Recharges en retard
+        </p>
       </div>
     </div>
   );
@@ -474,7 +482,7 @@ export default function ClientDetailPage({
           setError("Client non trouvé");
         } else {
           throw new Error(
-            result.error || "Erreur lors du chargement du client"
+            result.error || "Erreur lors du chargement du client",
           );
         }
         return;
@@ -532,7 +540,7 @@ export default function ClientDetailPage({
       setClient({
         ...client,
         equipments: client.equipments.map((eq) =>
-          eq.id === updatedEquipment.id ? updatedEquipment : eq
+          eq.id === updatedEquipment.id ? updatedEquipment : eq,
         ),
       });
     }
@@ -583,7 +591,7 @@ export default function ClientDetailPage({
 
     if (
       !confirm(
-        "Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible."
+        "Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.",
       )
     ) {
       return;
@@ -689,7 +697,9 @@ export default function ClientDetailPage({
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">
                   {client.name}
                 </h1>
-                <p className="text-gray-600 text-sm sm:text-base truncate">{client.location}</p>
+                <p className="text-gray-600 text-sm sm:text-base truncate">
+                  {client.location}
+                </p>
               </div>
             </div>
 
@@ -743,7 +753,9 @@ export default function ClientDetailPage({
                   className="inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
                 >
                   <CalendarIcon className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Mettre à jour toutes les vérifications</span>
+                  <span className="hidden sm:inline">
+                    Mettre à jour toutes les vérifications
+                  </span>
                   <span className="sm:hidden">Mettre à jour</span>
                 </button>
               </div>
@@ -831,7 +843,8 @@ export default function ClientDetailPage({
                                   📋 Contrôle bientôt
                                 </span>
                               )}
-                              {status.global.statusType === "recharge-expired" && (
+                              {status.global.statusType ===
+                                "recharge-expired" && (
                                 <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
                                   🔋 Recharge en retard
                                 </span>
@@ -853,8 +866,8 @@ export default function ClientDetailPage({
                           equipment.material.type === "PA"
                             ? "bg-blue-100 text-blue-800"
                             : equipment.material.type === "PP"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-orange-100 text-orange-800"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-orange-100 text-orange-800"
                         }`}
                       >
                         {equipment.material.type}
@@ -874,18 +887,20 @@ export default function ClientDetailPage({
                               status?.recharge?.isExpired
                                 ? "text-red-600"
                                 : status?.recharge?.isSoon
-                                ? "text-yellow-600"
-                                : "text-green-600"
+                                  ? "text-yellow-600"
+                                  : "text-green-600"
                             }`}
                           >
-                            {status?.recharge?.isApplicable && status?.recharge?.nextRechargeDate
+                            {status?.recharge?.isApplicable &&
+                            status?.recharge?.nextRechargeDate
                               ? new Date(
-                                  status.recharge.nextRechargeDate
+                                  status.recharge.nextRechargeDate,
                                 ).toLocaleDateString("fr-FR")
                               : "Non applicable"}
                             {status?.recharge?.isExpired && (
                               <span className="text-red-600 text-xs ml-1">
-                                (en retard de {status.recharge.daysDifference} j)
+                                (en retard de {status.recharge.daysDifference}{" "}
+                                j)
                               </span>
                             )}
                             {status?.recharge?.isSoon && (
@@ -907,13 +922,13 @@ export default function ClientDetailPage({
                             status?.validity?.isExpired
                               ? "text-red-600"
                               : status?.validity?.isSoon
-                              ? "text-yellow-600"
-                              : "text-green-600"
+                                ? "text-yellow-600"
+                                : "text-green-600"
                           }`}
                         >
                           {status?.validity?.expirationDate
                             ? new Date(
-                                status.validity.expirationDate
+                                status.validity.expirationDate,
                               ).toLocaleDateString("fr-FR")
                             : "Non calculée"}
                           {status?.validity?.isExpired && (
@@ -939,13 +954,13 @@ export default function ClientDetailPage({
                             status?.control?.isExpired
                               ? "text-red-600"
                               : status?.control?.isSoon
-                              ? "text-yellow-600"
-                              : "text-green-600"
+                                ? "text-yellow-600"
+                                : "text-green-600"
                           }`}
                         >
                           {status?.control?.nextControlDate
                             ? new Date(
-                                status.control.nextControlDate
+                                status.control.nextControlDate,
                               ).toLocaleDateString("fr-FR")
                             : "Non calculé"}
                           {status?.control?.isExpired && (

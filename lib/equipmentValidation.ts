@@ -1,14 +1,14 @@
 /**
  * Fonctions utilitaires pour la validation des équipements
- * 
+ *
  * Ces fonctions permettent de vérifier les statuts de validité, contrôle et recharge
  * des équipements en se basant sur les dates et les paramètres du matériel associé.
- * 
+ *
  * @author Développeur Senior
  * @version 1.0
  */
 
-import { MaterialType } from '@/types/material';
+import { MaterialType } from "@/types/material";
 
 /**
  * Interface pour représenter un équipement avec son matériel associé
@@ -22,9 +22,9 @@ export interface EquipmentWithMaterial {
   material: {
     id: string;
     type: MaterialType;
-    validityTime: number;              // En jours
-    timeBeforeControl: number;         // En jours
-    timeBeforeReload?: number | null;  // En jours
+    validityTime: number; // En jours
+    timeBeforeControl: number; // En jours
+    timeBeforeReload?: number | null; // En jours
   };
 }
 
@@ -45,7 +45,7 @@ export interface ValidationResult {
  * @returns Date object
  */
 const parseDate = (date: string | Date): Date => {
-  return typeof date === 'string' ? new Date(date) : date;
+  return typeof date === "string" ? new Date(date) : date;
 };
 
 /**
@@ -75,7 +75,7 @@ const daysDifference = (date1: Date, date2: Date): number => {
  * ============================================================================
  * VALIDATION DE LA VALIDITÉ DE L'ÉQUIPEMENT
  * ============================================================================
- * 
+ *
  * Vérifie si l'équipement est encore dans sa période de validité
  * basée sur la date de mise en service et la validité du matériel
  */
@@ -99,21 +99,23 @@ export const isEquipmentValid = (equipment: EquipmentWithMaterial): boolean => {
  * @param equipment - Équipement avec son matériel
  * @returns Résultat détaillé de la validation
  */
-export const getEquipmentValidityStatus = (equipment: EquipmentWithMaterial): ValidationResult => {
+export const getEquipmentValidityStatus = (
+  equipment: EquipmentWithMaterial,
+): ValidationResult => {
   const commissioningDate = parseDate(equipment.commissioningDate);
   const validityPeriodDays = equipment.material.validityTime;
   const expirationDate = addDays(commissioningDate, validityPeriodDays);
   const today = new Date();
-  
+
   const daysRemaining = daysDifference(today, expirationDate);
   const isExpired = today > expirationDate;
-  
+
   return {
     isValid: !isExpired,
     daysRemaining: isExpired ? 0 : daysRemaining,
     expirationDate,
     isExpired,
-    daysSinceExpiry: isExpired ? Math.abs(daysRemaining) : undefined
+    daysSinceExpiry: isExpired ? Math.abs(daysRemaining) : undefined,
   };
 };
 
@@ -121,7 +123,7 @@ export const getEquipmentValidityStatus = (equipment: EquipmentWithMaterial): Va
  * ============================================================================
  * VALIDATION DU CONTRÔLE
  * ============================================================================
- * 
+ *
  * Vérifie si l'équipement nécessite un contrôle
  * basé sur la date de dernière vérification et le délai avant contrôle
  */
@@ -138,7 +140,7 @@ export const isControlValid = (equipment: EquipmentWithMaterial): boolean => {
     const controlPeriodDays = equipment.material.timeBeforeControl;
     const firstControlDate = addDays(commissioningDate, controlPeriodDays);
     const today = new Date();
-    
+
     return today <= firstControlDate;
   }
 
@@ -155,24 +157,26 @@ export const isControlValid = (equipment: EquipmentWithMaterial): boolean => {
  * @param equipment - Équipement avec son matériel
  * @returns Résultat détaillé de la validation du contrôle
  */
-export const getControlStatus = (equipment: EquipmentWithMaterial): ValidationResult & { hasNeverBeenControlled: boolean } => {
+export const getControlStatus = (
+  equipment: EquipmentWithMaterial,
+): ValidationResult & { hasNeverBeenControlled: boolean } => {
   // Si aucune vérification n'a été effectuée
   if (!equipment.lastVerificationDate) {
     const commissioningDate = parseDate(equipment.commissioningDate);
     const controlPeriodDays = equipment.material.timeBeforeControl;
     const firstControlDate = addDays(commissioningDate, controlPeriodDays);
     const today = new Date();
-    
+
     const daysRemaining = daysDifference(today, firstControlDate);
     const isExpired = today > firstControlDate;
-    
+
     return {
       isValid: !isExpired,
       daysRemaining: isExpired ? 0 : daysRemaining,
       expirationDate: firstControlDate,
       isExpired,
       daysSinceExpiry: isExpired ? Math.abs(daysRemaining) : undefined,
-      hasNeverBeenControlled: true
+      hasNeverBeenControlled: true,
     };
   }
 
@@ -180,17 +184,17 @@ export const getControlStatus = (equipment: EquipmentWithMaterial): ValidationRe
   const controlPeriodDays = equipment.material.timeBeforeControl;
   const nextControlDate = addDays(lastVerificationDate, controlPeriodDays);
   const today = new Date();
-  
+
   const daysRemaining = daysDifference(today, nextControlDate);
   const isExpired = today > nextControlDate;
-  
+
   return {
     isValid: !isExpired,
     daysRemaining: isExpired ? 0 : daysRemaining,
     expirationDate: nextControlDate,
     isExpired,
     daysSinceExpiry: isExpired ? Math.abs(daysRemaining) : undefined,
-    hasNeverBeenControlled: false
+    hasNeverBeenControlled: false,
   };
 };
 
@@ -198,7 +202,7 @@ export const getControlStatus = (equipment: EquipmentWithMaterial): ValidationRe
  * ============================================================================
  * VALIDATION DE LA RECHARGE
  * ============================================================================
- * 
+ *
  * Vérifie si l'équipement nécessite une recharge (uniquement pour les PA)
  * basé sur la date de dernière recharge et le délai avant recharge
  */
@@ -208,7 +212,9 @@ export const getControlStatus = (equipment: EquipmentWithMaterial): ValidationRe
  * @param equipment - Équipement avec son matériel
  * @returns true si la recharge est encore valide, false si recharge nécessaire, null si non applicable
  */
-export const isRechargeValid = (equipment: EquipmentWithMaterial): boolean | null => {
+export const isRechargeValid = (
+  equipment: EquipmentWithMaterial,
+): boolean | null => {
   // La recharge ne s'applique qu'aux équipements PA
   if (equipment.material.type !== MaterialType.PA) {
     return null; // Non applicable
@@ -220,10 +226,10 @@ export const isRechargeValid = (equipment: EquipmentWithMaterial): boolean | nul
   }
 
   // Si aucune recharge n'a été effectuée, utiliser la date de mise en service
-  const baseDate = equipment.lastRechargeDate 
+  const baseDate = equipment.lastRechargeDate
     ? parseDate(equipment.lastRechargeDate)
     : parseDate(equipment.commissioningDate);
-  
+
   const rechargePeriodDays = equipment.material.timeBeforeReload;
   const nextRechargeDate = addDays(baseDate, rechargePeriodDays);
   const today = new Date();
@@ -236,7 +242,9 @@ export const isRechargeValid = (equipment: EquipmentWithMaterial): boolean | nul
  * @param equipment - Équipement avec son matériel
  * @returns Résultat détaillé de la validation de recharge ou null si non applicable
  */
-export const getRechargeStatus = (equipment: EquipmentWithMaterial): (ValidationResult & { hasNeverBeenRecharged: boolean }) | null => {
+export const getRechargeStatus = (
+  equipment: EquipmentWithMaterial,
+): (ValidationResult & { hasNeverBeenRecharged: boolean }) | null => {
   // La recharge ne s'applique qu'aux équipements PA
   if (equipment.material.type !== MaterialType.PA) {
     return null; // Non applicable
@@ -248,26 +256,26 @@ export const getRechargeStatus = (equipment: EquipmentWithMaterial): (Validation
   }
 
   const hasNeverBeenRecharged = !equipment.lastRechargeDate;
-  
+
   // Utiliser la date de dernière recharge ou la date de mise en service
-  const baseDate = equipment.lastRechargeDate 
+  const baseDate = equipment.lastRechargeDate
     ? parseDate(equipment.lastRechargeDate)
     : parseDate(equipment.commissioningDate);
-  
+
   const rechargePeriodDays = equipment.material.timeBeforeReload;
   const nextRechargeDate = addDays(baseDate, rechargePeriodDays);
   const today = new Date();
-  
+
   const daysRemaining = daysDifference(today, nextRechargeDate);
   const isExpired = today > nextRechargeDate;
-  
+
   return {
     isValid: !isExpired,
     daysRemaining: isExpired ? 0 : daysRemaining,
     expirationDate: nextRechargeDate,
     isExpired,
     daysSinceExpiry: isExpired ? Math.abs(daysRemaining) : undefined,
-    hasNeverBeenRecharged
+    hasNeverBeenRecharged,
   };
 };
 
@@ -290,23 +298,25 @@ export interface EquipmentStatusSummary {
   issueCount: number;
 }
 
-export const getEquipmentStatusSummary = (equipment: EquipmentWithMaterial): EquipmentStatusSummary => {
+export const getEquipmentStatusSummary = (
+  equipment: EquipmentWithMaterial,
+): EquipmentStatusSummary => {
   const validity = getEquipmentValidityStatus(equipment);
   const control = getControlStatus(equipment);
   const recharge = getRechargeStatus(equipment);
-  
+
   const issues = [
     !validity.isValid,
     !control.isValid,
-    recharge && !recharge.isValid
+    recharge && !recharge.isValid,
   ].filter(Boolean);
-  
+
   return {
     validity,
     control,
     recharge,
     hasAnyIssue: issues.length > 0,
-    issueCount: issues.length
+    issueCount: issues.length,
   };
 };
 
@@ -315,21 +325,27 @@ export const getEquipmentStatusSummary = (equipment: EquipmentWithMaterial): Equ
  * @param equipment - Équipement avec son matériel
  * @returns Niveau de priorité (1 = critique, 2 = importante, 3 = normale)
  */
-export const getEquipmentPriority = (equipment: EquipmentWithMaterial): 1 | 2 | 3 => {
+export const getEquipmentPriority = (
+  equipment: EquipmentWithMaterial,
+): 1 | 2 | 3 => {
   const summary = getEquipmentStatusSummary(equipment);
-  
+
   // Priorité critique : validité expirée ou contrôle en retard > 30 jours
-  if (!summary.validity.isValid || 
-      (summary.control.isExpired && summary.control.daysSinceExpiry! > 30)) {
+  if (
+    !summary.validity.isValid ||
+    (summary.control.isExpired && summary.control.daysSinceExpiry! > 30)
+  ) {
     return 1;
   }
-  
+
   // Priorité importante : contrôle expiré ou recharge expirée
-  if (!summary.control.isValid || 
-      (summary.recharge && !summary.recharge.isValid)) {
+  if (
+    !summary.control.isValid ||
+    (summary.recharge && !summary.recharge.isValid)
+  ) {
     return 2;
   }
-  
+
   // Priorité normale : tout est ok
   return 3;
 };
@@ -339,8 +355,10 @@ export const getEquipmentPriority = (equipment: EquipmentWithMaterial): 1 | 2 | 
  * @param equipments - Liste des équipements
  * @returns Équipements nécessitant une attention
  */
-export const getEquipmentsNeedingAttention = (equipments: EquipmentWithMaterial[]): EquipmentWithMaterial[] => {
-  return equipments.filter(equipment => {
+export const getEquipmentsNeedingAttention = (
+  equipments: EquipmentWithMaterial[],
+): EquipmentWithMaterial[] => {
+  return equipments.filter((equipment) => {
     const summary = getEquipmentStatusSummary(equipment);
     return summary.hasAnyIssue;
   });

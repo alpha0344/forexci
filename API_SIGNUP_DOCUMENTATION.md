@@ -5,11 +5,13 @@
 **URL:** `http://localhost:3001/api/auth/signup`
 
 ### Méthode
+
 ```
 POST
 ```
 
 ### Headers
+
 ```json
 {
   "Content-Type": "application/json"
@@ -17,6 +19,7 @@ POST
 ```
 
 ### Body (JSON)
+
 ```json
 {
   "email": "utilisateur@exemple.com",
@@ -26,6 +29,7 @@ POST
 ```
 
 ### Réponse - Succès (201)
+
 ```json
 {
   "success": true,
@@ -38,6 +42,7 @@ POST
 ```
 
 ### Réponse - Erreur (400)
+
 ```json
 {
   "error": "Email, mot de passe et nom complet requis"
@@ -45,6 +50,7 @@ POST
 ```
 
 ### Réponse - Erreur (409)
+
 ```json
 {
   "error": "Un compte avec cet email existe déjà"
@@ -54,20 +60,24 @@ POST
 ## Validation des données
 
 ### Email
+
 - Format valide requis (exemple@domaine.com)
 
 ### Mot de passe
+
 - Minimum 6 caractères
 - Au moins une minuscule
-- Au moins une majuscule  
+- Au moins une majuscule
 - Au moins un chiffre
 
 ### Nom complet
+
 - Requis et non vide
 
 ## Exemples avec cURL
 
 ### Création d'un compte valide
+
 ```bash
 curl -X POST http://localhost:3001/api/auth/signup \
   -H "Content-Type: application/json" \
@@ -79,6 +89,7 @@ curl -X POST http://localhost:3001/api/auth/signup \
 ```
 
 ### Test avec données invalides
+
 ```bash
 curl -X POST http://localhost:3001/api/auth/signup \
   -H "Content-Type: application/json" \

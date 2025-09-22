@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -12,34 +12,34 @@
   /* ============================================
      NOUVELLE PALETTE FOREXCI (MODERNE + SÉCURITÉ)
      ============================================ */
-  
+
   /* Rouge pompier (accent principal, énergie, urgence) */
-  --brand-red: #E63946;
+  --brand-red: #e63946;
   --brand-red-light: #ea5964;
   --brand-red-dark: #d32f3c;
 
   /* Orange sécurité (secondaire, dynamisme, chaleur) */
-  --brand-orange: #F77F00;
+  --brand-orange: #f77f00;
   --brand-orange-light: #f8951a;
   --brand-orange-dark: #e06f00;
 
   /* Gris anthracite (fond sombre, sérieux, pro) */
-  --brand-anthracite: #2B2D42;
+  --brand-anthracite: #2b2d42;
   --brand-anthracite-light: #3d3f5c;
   --brand-anthracite-dark: #1e1f2e;
 
   /* Gris clair (contraste, lisibilité) */
-  --brand-gray: #EDF2F4;
+  --brand-gray: #edf2f4;
   --brand-gray-light: #f5f8fa;
   --brand-gray-dark: #dde6e9;
 
   /* Blanc cassé (background clair, neutralité) */
-  --brand-white: #F8F9FA;
+  --brand-white: #f8f9fa;
   --brand-white-light: #ffffff;
   --brand-white-dark: #e9ecef;
 
   /* Bleu confiance (optionnel, pour boutons ou éléments rassurants) */
-  --brand-blue: #1D3557;
+  --brand-blue: #1d3557;
   --brand-blue-light: #3a5a7a;
   --brand-blue-dark: #0f1d2e;
 
@@ -63,7 +63,7 @@
      COULEURS DE TEXTE (ADAPTÉES)
      ============================================ */
   --text-primary: var(--brand-anthracite);
-  --text-secondary: #6C757D;
+  --text-secondary: #6c757d;
   --text-muted: #868e96;
   --text-inverse: var(--brand-white);
 
@@ -86,13 +86,21 @@
   /* Ombres */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl:
+    0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
   /* Ombres avec couleurs de marque */
-  --shadow-brand-red: 0 10px 15px -3px rgba(230, 57, 70, 0.15), 0 4px 6px -4px rgba(230, 57, 70, 0.1);
-  --shadow-brand-orange: 0 10px 15px -3px rgba(247, 127, 0, 0.15), 0 4px 6px -4px rgba(247, 127, 0, 0.1);
-  --shadow-brand-blue: 0 10px 15px -3px rgba(29, 53, 87, 0.15), 0 4px 6px -4px rgba(29, 53, 87, 0.1);
+  --shadow-brand-red:
+    0 10px 15px -3px rgba(230, 57, 70, 0.15),
+    0 4px 6px -4px rgba(230, 57, 70, 0.1);
+  --shadow-brand-orange:
+    0 10px 15px -3px rgba(247, 127, 0, 0.15),
+    0 4px 6px -4px rgba(247, 127, 0, 0.1);
+  --shadow-brand-blue:
+    0 10px 15px -3px rgba(29, 53, 87, 0.15),
+    0 4px 6px -4px rgba(29, 53, 87, 0.1);
 
   /* Couleurs de bordure manquantes */
   --border-light: #dee2e6;
@@ -316,7 +324,16 @@ html {
 }
 
 body {
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  font-family:
+    "Poppins",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Roboto",
+    "Oxygen",
+    "Ubuntu",
+    "Cantarell",
+    sans-serif;
   line-height: 1.6;
   color: var(--text-primary);
   background-color: var(--bg-secondary);
@@ -331,41 +348,96 @@ body {
    ============================================ */
 
 /* Couleurs de texte */
-.text-primary { color: var(--text-primary); }
-.text-secondary { color: var(--text-secondary); }
-.text-muted { color: var(--text-muted); }
-.text-inverse { color: var(--text-inverse); }
-.text-brand-yellow { color: var(--primary-yellow); }
-.text-brand-orange { color: var(--primary-orange); }
-.text-brand-red-orange { color: var(--primary-red-orange); }
-.text-brand-red { color: var(--primary-red); }
-.text-success { color: var(--success); }
-.text-warning { color: var(--warning); }
-.text-error { color: var(--error); }
-.text-info { color: var(--info); }
+.text-primary {
+  color: var(--text-primary);
+}
+.text-secondary {
+  color: var(--text-secondary);
+}
+.text-muted {
+  color: var(--text-muted);
+}
+.text-inverse {
+  color: var(--text-inverse);
+}
+.text-brand-yellow {
+  color: var(--primary-yellow);
+}
+.text-brand-orange {
+  color: var(--primary-orange);
+}
+.text-brand-red-orange {
+  color: var(--primary-red-orange);
+}
+.text-brand-red {
+  color: var(--primary-red);
+}
+.text-success {
+  color: var(--success);
+}
+.text-warning {
+  color: var(--warning);
+}
+.text-error {
+  color: var(--error);
+}
+.text-info {
+  color: var(--info);
+}
 
 /* Couleurs de fond */
-.bg-brand-yellow { background-color: var(--primary-yellow); }
-.bg-brand-orange { background-color: var(--primary-orange); }
-.bg-brand-red-orange { background-color: var(--primary-red-orange); }
-.bg-brand-red { background-color: var(--primary-red); }
-.bg-brand-yellow-light { background-color: var(--primary-yellow-light); }
-.bg-brand-orange-light { background-color: var(--primary-orange-light); }
-.bg-brand-red-orange-light { background-color: var(--primary-red-orange-light); }
-.bg-brand-red-light { background-color: var(--primary-red-light); }
+.bg-brand-yellow {
+  background-color: var(--primary-yellow);
+}
+.bg-brand-orange {
+  background-color: var(--primary-orange);
+}
+.bg-brand-red-orange {
+  background-color: var(--primary-red-orange);
+}
+.bg-brand-red {
+  background-color: var(--primary-red);
+}
+.bg-brand-yellow-light {
+  background-color: var(--primary-yellow-light);
+}
+.bg-brand-orange-light {
+  background-color: var(--primary-orange-light);
+}
+.bg-brand-red-orange-light {
+  background-color: var(--primary-red-orange-light);
+}
+.bg-brand-red-light {
+  background-color: var(--primary-red-light);
+}
 
 /* Gradient de marque */
 .bg-brand-gradient {
-  background: linear-gradient(135deg, var(--primary-yellow) 0%, var(--primary-orange) 25%, var(--primary-red-orange) 75%, var(--primary-red) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary-yellow) 0%,
+    var(--primary-orange) 25%,
+    var(--primary-red-orange) 75%,
+    var(--primary-red) 100%
+  );
 }
 
 .bg-brand-gradient-subtle {
-  background: linear-gradient(135deg, var(--primary-yellow-light) 0%, var(--primary-orange-light) 50%, var(--primary-red-orange-light) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary-yellow-light) 0%,
+    var(--primary-orange-light) 50%,
+    var(--primary-red-orange-light) 100%
+  );
 }
 
 /* Boutons avec le thème de marque */
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-red-orange) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary-orange) 0%,
+    var(--primary-red-orange) 100%
+  );
   color: var(--text-inverse);
   border: none;
   padding: var(--spacing-sm) var(--spacing-lg);
@@ -377,7 +449,11 @@ body {
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--primary-orange-dark) 0%, var(--primary-red-orange-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary-orange-dark) 0%,
+    var(--primary-red-orange-dark) 100%
+  );
   box-shadow: var(--shadow-lg);
   transform: translateY(-1px);
 }
@@ -415,7 +491,11 @@ body {
 }
 
 .card-accent {
-  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--primary-yellow-light) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--bg-primary) 0%,
+    var(--primary-yellow-light) 100%
+  );
   border-left: 4px solid var(--primary-orange);
 }
 
@@ -435,8 +515,14 @@ select:focus-visible {
 
 /* Animations globales */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
@@ -445,14 +531,22 @@ select:focus-visible {
 
 /* Media queries pour responsive */
 @media (max-width: 480px) {
-  body { font-size: 14px; }
-  .card { padding: var(--spacing-lg); }
+  body {
+    font-size: 14px;
+  }
+  .card {
+    padding: var(--spacing-lg);
+  }
 }
 
 @media (min-width: 481px) and (max-width: 1024px) {
-  body { font-size: 15px; }
+  body {
+    font-size: 15px;
+  }
 }
 
 @media (min-width: 1025px) {
-  body { font-size: 16px; }
+  body {
+    font-size: 16px;
+  }
 }

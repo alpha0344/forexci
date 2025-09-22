@@ -208,7 +208,7 @@ export default function HomePage() {
         // Calcul des statistiques
         const now = new Date();
         const thirtyDaysFromNow = new Date(
-          now.getTime() + 30 * 24 * 60 * 60 * 1000
+          now.getTime() + 30 * 24 * 60 * 60 * 1000,
         );
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
@@ -235,7 +235,7 @@ export default function HomePage() {
             const commissioningDate = new Date(equipment.commissioningDate);
             const validityTime = equipment.material.validityTime;
             const expirationDate = new Date(
-              commissioningDate.getTime() + validityTime * 24 * 60 * 60 * 1000
+              commissioningDate.getTime() + validityTime * 24 * 60 * 60 * 1000,
             );
 
             if (expirationDate < now) {
@@ -252,7 +252,7 @@ export default function HomePage() {
               const lastVerification = new Date(equipment.lastVerificationDate);
               const nextControlDate = new Date(
                 lastVerification.getTime() +
-                  timeBeforeControl * 24 * 60 * 60 * 1000
+                  timeBeforeControl * 24 * 60 * 60 * 1000,
               );
               if (nextControlDate < now) {
                 controlsOverdue++;
@@ -260,7 +260,7 @@ export default function HomePage() {
             } else {
               const firstControlDate = new Date(
                 commissioningDate.getTime() +
-                  timeBeforeControl * 24 * 60 * 60 * 1000
+                  timeBeforeControl * 24 * 60 * 60 * 1000,
               );
               if (firstControlDate < now) {
                 controlsOverdue++;
@@ -279,12 +279,12 @@ export default function HomePage() {
                 const lastRecharge = new Date(equipment.lastRechargeDate);
                 nextRechargeDate = new Date(
                   lastRecharge.getTime() +
-                    timeBeforeReload * 24 * 60 * 60 * 1000
+                    timeBeforeReload * 24 * 60 * 60 * 1000,
                 );
               } else {
                 nextRechargeDate = new Date(
                   commissioningDate.getTime() +
-                    timeBeforeReload * 24 * 60 * 60 * 1000
+                    timeBeforeReload * 24 * 60 * 60 * 1000,
                 );
               }
 
@@ -299,7 +299,7 @@ export default function HomePage() {
         const paTypes = materials.filter((m: any) => m.type === "PA").length;
         const ppTypes = materials.filter((m: any) => m.type === "PP").length;
         const alarmTypes = materials.filter(
-          (m: any) => m.type === "ALARM"
+          (m: any) => m.type === "ALARM",
         ).length;
 
         setStats({
@@ -389,7 +389,7 @@ export default function HomePage() {
               0
                 ? {
                     value: Math.round(
-                      (0 / Math.max(stats.clients.total, 1)) * 100
+                      (0 / Math.max(stats.clients.total, 1)) * 100,
                     ),
                     isPositive: 0 > 0,
                   }
