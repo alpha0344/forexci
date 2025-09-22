@@ -6,19 +6,33 @@ import { EyeIcon, UserGroupIcon, ClockIcon, ExclamationTriangleIcon, PlusIcon } 
 import AddClientModal from '@/components/AddClientModal';
 
 // Types basés sur votre schéma Prisma
+interface Material {
+  id: string;
+  type: "PA" | "PP" | "ALARM";
+  validityTime: number;
+  timeBeforeControl: number;
+  timeBeforeReload?: number | null;
+}
+
+interface ClientEquipment {
+  id: string;
+  number: number;
+  commissioningDate: string;
+  lastVerificationDate?: string | null;
+  lastRechargeDate?: string | null;
+  rechargeType?: "WATER_ADD" | "POWDER" | null;
+  volume?: number | null;
+  notes?: string | null;
+  material: Material;
+}
+
 interface Client {
   id: string;
   name: string;
   location: string;
   contactName: string;
   phone?: string | null;
-  equipments: {
-    id: string;
-    material?: {
-      id: string;
-      type: string;
-    };
-  }[];
+  equipments: ClientEquipment[];
   createdAt: string;
   updatedAt: string;
 }
@@ -31,10 +45,11 @@ interface StatCardProps {
   value: number;
   icon: React.ComponentType<{ className?: string }>;
   variant?: 'default' | 'warning' | 'danger';
+  subtitle?: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, variant = 'default' }) => {
-  const baseClasses = "rounded-lg p-6 shadow-sm border transition-all duration-200 hover:shadow-md";
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, variant = 'default', subtitle }) => {
+  const baseClasses = "rounded-lg p-4 sm:p-6 shadow-sm border transition-all duration-200 hover:shadow-md";
   const variantClasses = {
     default: "bg-white border-gray-200",
     warning: "bg-orange-50 border-orange-200",
@@ -50,11 +65,14 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, variant =
   return (
     <div className={`${baseClasses} ${variantClasses[variant]}`}>
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1 truncate">{title}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-gray-900">{value}</p>
+          {subtitle && (
+            <p className="text-xs text-gray-500 mt-1 leading-tight">{subtitle}</p>
+          )}
         </div>
-        <Icon className={`h-8 w-8 ${iconClasses[variant]}`} />
+        <Icon className={`h-6 w-6 sm:h-8 sm:w-8 ${iconClasses[variant]} flex-shrink-0 ml-3`} />
       </div>
     </div>
   );
@@ -169,10 +187,81 @@ export default function ClientsPage() {
     setClients(prev => [newClient, ...prev]);
   };
 
-  // Calcul des statistiques
+  // Calcul des statistiques réelles
   const totalClients = clients.length;
-  const actionsTocome = Math.min(1, totalClients); // Premier client comme exemple
-  const actionsToDo = Math.min(1, Math.max(0, totalClients - 1)); // Deuxième client comme exemple
+  
+  // Calcul des actions à venir et à effectuer basé sur les équipements
+  const { actionsTocome, actionsToDo } = useMemo(() => {
+    const now = new Date();
+    const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    
+    let upcomingActions = 0; // Actions à venir (dans les 30 jours)
+    let urgentActions = 0;   // Actions à effectuer (en retard ou imminentes)
+
+    clients.forEach(client => {
+      client.equipments?.forEach(equipment => {
+        // Vérification de sécurité
+        if (!equipment.material || !equipment.commissioningDate) return;
+        
+        const commissioningDate = new Date(equipment.commissioningDate);
+        
+        // 1. Vérification de la validité
+        if (equipment.material.validityTime) {
+          const validityTime = equipment.material.validityTime;
+          const expirationDate = new Date(commissioningDate.getTime() + validityTime * 24 * 60 * 60 * 1000);
+          
+          if (expirationDate < now) {
+            urgentActions++; // Équipement expiré = action urgente
+          } else if (expirationDate <= thirtyDaysFromNow) {
+            upcomingActions++; // Expire dans les 30 jours = action à venir
+          }
+        }
+        
+        // 2. Vérification des contrôles
+        if (equipment.material.timeBeforeControl) {
+          const timeBeforeControl = equipment.material.timeBeforeControl;
+          let nextControlDate: Date;
+          
+          if (equipment.lastVerificationDate) {
+            const lastVerification = new Date(equipment.lastVerificationDate);
+            nextControlDate = new Date(lastVerification.getTime() + timeBeforeControl * 24 * 60 * 60 * 1000);
+          } else {
+            nextControlDate = new Date(commissioningDate.getTime() + timeBeforeControl * 24 * 60 * 60 * 1000);
+          }
+          
+          if (nextControlDate < now) {
+            urgentActions++; // Contrôle en retard = action urgente
+          } else if (nextControlDate <= thirtyDaysFromNow) {
+            upcomingActions++; // Contrôle dans les 30 jours = action à venir
+          }
+        }
+        
+        // 3. Vérification des recharges (pour équipements PA uniquement)
+        if (equipment.material.type === 'PA' && equipment.material.timeBeforeReload) {
+          const timeBeforeReload = equipment.material.timeBeforeReload;
+          let nextRechargeDate: Date;
+          
+          if (equipment.lastRechargeDate) {
+            const lastRecharge = new Date(equipment.lastRechargeDate);
+            nextRechargeDate = new Date(lastRecharge.getTime() + timeBeforeReload * 24 * 60 * 60 * 1000);
+          } else {
+            nextRechargeDate = new Date(commissioningDate.getTime() + timeBeforeReload * 24 * 60 * 60 * 1000);
+          }
+          
+          if (nextRechargeDate < now) {
+            urgentActions++; // Recharge en retard = action urgente
+          } else if (nextRechargeDate <= thirtyDaysFromNow) {
+            upcomingActions++; // Recharge dans les 30 jours = action à venir
+          }
+        }
+      });
+    });
+
+    return {
+      actionsTocome: upcomingActions,
+      actionsToDo: urgentActions
+    };
+  }, [clients]);
 
   // Filtrage des clients basé sur la recherche
   const filteredClients = useMemo(() => {
@@ -188,20 +277,20 @@ export default function ClientsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Container principal avec padding responsive */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         
         {/* En-tête de page */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
             Gestion des Clients
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Suivi et gestion de votre portefeuille client
           </p>
         </div>
 
         {/* Cartes de statistiques - responsive grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <StatCard
             title="Total Clients"
             value={totalClients}
@@ -213,12 +302,14 @@ export default function ClientsPage() {
             value={actionsTocome}
             icon={ClockIcon}
             variant="warning"
+            subtitle={`Équipements à vérifier dans les 30 jours`}
           />
           <StatCard
-            title="Actions à effectuer"
+            title="Actions urgentes"
             value={actionsToDo}
             icon={ExclamationTriangleIcon}
             variant="danger"
+            subtitle={`Équipements expirés ou contrôles en retard`}
           />
         </div>
 

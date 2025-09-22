@@ -203,10 +203,10 @@ const MonthSelector: React.FC<MonthSelectorProps> = ({
   onYearSelect,
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 flex items-center mb-3 sm:mb-0">
-          <CalendarIcon className="h-5 w-5 mr-2 text-blue-600" />
+        <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center mb-3 sm:mb-0">
+          <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
           Sélectionner une période
         </h2>
 
@@ -214,7 +214,7 @@ const MonthSelector: React.FC<MonthSelectorProps> = ({
         <div className="flex items-center space-x-2">
           <label
             htmlFor="year-select"
-            className="text-sm font-medium text-gray-700"
+            className="text-xs sm:text-sm font-medium text-gray-700"
           >
             Année :
           </label>
@@ -222,7 +222,7 @@ const MonthSelector: React.FC<MonthSelectorProps> = ({
             id="year-select"
             value={selectedYear}
             onChange={(e) => onYearSelect(parseInt(e.target.value))}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             {availableYears.map((year) => (
               <option key={year} value={year}>
@@ -233,13 +233,13 @@ const MonthSelector: React.FC<MonthSelectorProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-3">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-12 gap-2 sm:gap-3">
         {months.map((month) => (
           <button
             key={`${month.year}-${month.month}`}
             onClick={() => onMonthSelect(month.month, month.year)}
             className={`
-              relative px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
+              relative px-2 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200
               ${
                 month.isSelected
                   ? "bg-blue-600 text-white shadow-md transform scale-105"
@@ -254,11 +254,11 @@ const MonthSelector: React.FC<MonthSelectorProps> = ({
           >
             <div className="text-center">
               <div className="font-semibold">{month.shortName}</div>
-              <div className="text-xs opacity-75">{month.year}</div>
+              <div className="text-xs opacity-75 hidden sm:block">{month.year}</div>
             </div>
 
             {month.isCurrent && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full"></div>
+              <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
             )}
           </button>
         ))}
@@ -332,30 +332,52 @@ const EquipmentActionBadge: React.FC<EquipmentActionBadgeProps> = ({
 
   return (
     <div
-      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getActionColor()}`}
+      className={`inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium border ${getActionColor()} max-w-full`}
     >
-      <span className="mr-1">{getActionIcon()}</span>
-      <span className="mr-2">#{action.equipmentNumber}</span>
-      <span className="mr-2">{getActionDescription()}</span>
-      <span className="text-xs opacity-75">({getActionLabel()})</span>
-      {action.isOverdue && (
-        <span className={`ml-2 font-semibold ${
-          action.actionType === "validity" ? "text-red-600" : 
-          action.actionType === "control" ? "text-orange-600" : 
-          action.actionType === "recharge" ? "text-purple-600" : "text-gray-600"
-        }`}>
-          ({action.daysDifference} j retard)
+      <span className="mr-1 flex-shrink-0">{getActionIcon()}</span>
+      <span className="mr-1 sm:mr-2 flex-shrink-0">#{action.equipmentNumber}</span>
+      
+      {/* Version mobile simplifiée */}
+      <div className="sm:hidden flex items-center min-w-0">
+        <span className="truncate text-xs">
+          {action.actionType === "validity" ? "Renouv." : 
+           action.actionType === "control" ? "Contrôle" : "Recharge"}
         </span>
-      )}
-      {!action.isOverdue && (
-        <span className={`ml-2 font-medium ${
-          action.actionType === "validity" ? "text-yellow-600" : 
-          action.actionType === "control" ? "text-blue-600" : 
-          action.actionType === "recharge" ? "text-green-600" : "text-gray-600"
-        }`}>
-          (dans {action.daysDifference} j)
-        </span>
-      )}
+        {action.isOverdue && (
+          <span className="ml-1 font-semibold text-xs flex-shrink-0">
+            (-{action.daysDifference}j)
+          </span>
+        )}
+        {!action.isOverdue && (
+          <span className="ml-1 font-medium text-xs flex-shrink-0">
+            (+{action.daysDifference}j)
+          </span>
+        )}
+      </div>
+
+      {/* Version desktop complète */}
+      <div className="hidden sm:flex items-center min-w-0">
+        <span className="mr-2 truncate">{getActionDescription()}</span>
+        <span className="text-xs opacity-75 flex-shrink-0">({getActionLabel()})</span>
+        {action.isOverdue && (
+          <span className={`ml-2 font-semibold flex-shrink-0 ${
+            action.actionType === "validity" ? "text-red-600" : 
+            action.actionType === "control" ? "text-orange-600" : 
+            action.actionType === "recharge" ? "text-purple-600" : "text-gray-600"
+          }`}>
+            ({action.daysDifference} j retard)
+          </span>
+        )}
+        {!action.isOverdue && (
+          <span className={`ml-2 font-medium flex-shrink-0 ${
+            action.actionType === "validity" ? "text-yellow-600" : 
+            action.actionType === "control" ? "text-blue-600" : 
+            action.actionType === "recharge" ? "text-green-600" : "text-gray-600"
+          }`}>
+            (dans {action.daysDifference} j)
+          </span>
+        )}
+      </div>
     </div>
   );
 };
@@ -385,35 +407,38 @@ const ClientActionCard: React.FC<ClientActionCardProps> = ({
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-sm border border-gray-200 border-l-4 p-6 ${getPriorityColor()}`}
+      className={`bg-white rounded-lg shadow-sm border border-gray-200 border-l-4 p-3 sm:p-4 lg:p-6 ${getPriorityColor()}`}
     >
       {/* En-tête du client */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <div className="flex items-center space-x-3">
-            {getPriorityIcon()}
-            <h3 className="text-lg font-semibold text-gray-900">
-              {clientAction.clientName}
-            </h3>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-              {clientAction.totalActions} action
-              {clientAction.totalActions > 1 ? "s" : ""}
-            </span>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 sm:mb-4 space-y-2 sm:space-y-0">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start space-x-2 sm:space-x-3">
+            <div className="flex-shrink-0 mt-0.5">
+              {getPriorityIcon()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 truncate">
+                {clientAction.clientName}
+              </h3>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mt-1">
+                {clientAction.totalActions} action{clientAction.totalActions > 1 ? "s" : ""}
+              </span>
+            </div>
           </div>
 
           <div className="mt-2 space-y-1">
-            <div className="flex items-center text-sm text-gray-600">
-              <MapPinIcon className="h-4 w-4 mr-2" />
-              {clientAction.clientLocation}
+            <div className="flex items-start text-xs sm:text-sm text-gray-600">
+              <MapPinIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 mt-0.5" />
+              <span className="break-words">{clientAction.clientLocation}</span>
             </div>
-            <div className="flex items-center text-sm text-gray-600">
-              <UserIcon className="h-4 w-4 mr-2" />
-              {clientAction.contactName}
+            <div className="flex items-start text-xs sm:text-sm text-gray-600">
+              <UserIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 mt-0.5" />
+              <span className="break-words">{clientAction.contactName}</span>
             </div>
             {clientAction.phone && (
-              <div className="flex items-center text-sm text-gray-600">
-                <PhoneIcon className="h-4 w-4 mr-2" />
-                {clientAction.phone}
+              <div className="flex items-start text-xs sm:text-sm text-gray-600">
+                <PhoneIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 mt-0.5" />
+                <span className="break-words">{clientAction.phone}</span>
               </div>
             )}
           </div>
@@ -421,11 +446,11 @@ const ClientActionCard: React.FC<ClientActionCardProps> = ({
       </div>
 
       {/* Actions à réaliser */}
-      <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-3">
+      <div className="mb-3 sm:mb-4">
+        <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
           Actions à réaliser :
         </h4>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1 sm:gap-2">
           {clientAction.actions.map((action, index) => (
             <EquipmentActionBadge
               key={`${action.equipmentId}-${action.actionType}-${index}`}
@@ -436,13 +461,14 @@ const ClientActionCard: React.FC<ClientActionCardProps> = ({
       </div>
 
       {/* Bouton d'action */}
-      <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end">
+      <div className="pt-3 sm:pt-4 border-t border-gray-200 flex justify-end">
         <Link
           href={`/clients/${clientAction.clientId}`}
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+          className="inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
         >
-          <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-2" />
-          Voir le client
+          <ArrowTopRightOnSquareIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+          <span className="hidden sm:inline">Voir le client</span>
+          <span className="sm:hidden">Voir</span>
         </Link>
       </div>
     </div>
@@ -811,11 +837,11 @@ export default function CalendrierPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-center h-64">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="flex items-center justify-center h-32 sm:h-64">
             <div className="flex items-center">
               <svg
-                className="animate-spin h-8 w-8 text-blue-600"
+                className="animate-spin h-6 w-6 sm:h-8 sm:w-8 text-blue-600"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -833,7 +859,9 @@ export default function CalendrierPage() {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                 />
               </svg>
-              <p className="ml-3 text-gray-600">Chargement du calendrier...</p>
+              <p className="ml-2 sm:ml-3 text-xs sm:text-sm lg:text-base text-gray-600">
+                Chargement du calendrier...
+              </p>
             </div>
           </div>
         </div>
@@ -844,17 +872,17 @@ export default function CalendrierPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="text-center">
-            <div className="bg-white rounded-lg shadow-sm border border-red-200 p-12">
-              <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            <div className="bg-white rounded-lg shadow-sm border border-red-200 p-4 sm:p-6 lg:p-12">
+              <ExclamationTriangleIcon className="h-8 w-8 sm:h-12 sm:w-12 text-red-500 mx-auto mb-3 sm:mb-4" />
+              <h2 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-2">
                 Erreur de chargement
               </h2>
-              <p className="text-gray-600 mb-4">{error}</p>
+              <p className="text-xs sm:text-sm lg:text-base text-gray-600 mb-3 sm:mb-4">{error}</p>
               <button
                 onClick={fetchClients}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Réessayer
               </button>
@@ -867,13 +895,13 @@ export default function CalendrierPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* En-tête */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="mb-4 sm:mb-6 lg:mb-8">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
             Calendrier de Validité et Contrôles
           </h1>
-          <p className="text-gray-600">
+          <p className="text-xs sm:text-sm lg:text-base text-gray-600">
             Suivi des dates d'expiration, renouvellements de matériel et contrôles périodiques
           </p>
         </div>
@@ -888,15 +916,15 @@ export default function CalendrierPage() {
         />
 
         {/* Résultats */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="flex flex-col space-y-3 sm:space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">
                 Matériels à renouveler en{" "}
                 {months.find((m) => m.month === selectedMonth)?.name}{" "}
                 {selectedYear}
               </h2>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">
                 Équipements qui expirent ce mois-ci 
                 {(() => {
                   const currentMonth = new Date().getMonth() + 1;
@@ -911,25 +939,25 @@ export default function CalendrierPage() {
                 })()}
               </p>
             </div>
-            <div className="flex items-center space-x-4 text-sm text-gray-600">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
               <span className="flex items-center">
-                <div className="w-3 h-3 bg-red-500 rounded mr-2"></div>
-                Matériel expiré
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded mr-1 sm:mr-2 flex-shrink-0"></div>
+                <span className="whitespace-nowrap">Matériel expiré</span>
               </span>
               <span className="flex items-center">
-                <div className="w-3 h-3 bg-yellow-500 rounded mr-2"></div>
-                Action à venir
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-500 rounded mr-1 sm:mr-2 flex-shrink-0"></div>
+                <span className="whitespace-nowrap">Action à venir</span>
               </span>
             </div>
           </div>
 
           {clientsWithActions.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-              <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-12 text-center">
+              <CheckCircleIcon className="h-8 w-8 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-green-500 mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-2">
                 Aucun matériel à renouveler
               </h3>
-              <p className="text-gray-600">
+              <p className="text-xs sm:text-sm lg:text-base text-gray-600">
                 Aucun matériel n'expire en{" "}
                 {months.find((m) => m.month === selectedMonth)?.name}{" "}
                 {selectedYear} et aucun matériel n'est actuellement expiré.

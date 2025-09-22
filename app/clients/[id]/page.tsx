@@ -373,88 +373,43 @@ interface EquipmentStatsProps {
 const EquipmentStats: React.FC<EquipmentStatsProps> = ({ equipments }) => {
   const stats = {
     total: equipments.length,
-    pa: equipments.filter((eq) => eq.material.type === "PA").length,
-    pp: equipments.filter((eq) => eq.material.type === "PP").length,
-    alarm: equipments.filter((eq) => eq.material.type === "ALARM").length,
     validityExpired: equipments.filter((eq) => {
       const status = getEquipmentValidityStatus(eq);
       return status.isExpired;
-    }).length,
-    validityExpiringSoon: equipments.filter((eq) => {
-      const status = getEquipmentValidityStatus(eq);
-      return !status.isExpired && status.isSoon;
     }).length,
     controlExpired: equipments.filter((eq) => {
       const status = getEquipmentControlStatus(eq);
       return status.isExpired;
     }).length,
-    controlDueSoon: equipments.filter((eq) => {
-      const status = getEquipmentControlStatus(eq);
-      return !status.isExpired && status.isSoon;
-    }).length,
     rechargeExpired: equipments.filter((eq) => {
       const status = getEquipmentRechargeStatus(eq);
       return status.isApplicable && status.isExpired;
     }).length,
-    rechargeDueSoon: equipments.filter((eq) => {
-      const status = getEquipmentRechargeStatus(eq);
-      return status.isApplicable && !status.isExpired && status.isSoon;
-    }).length,
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-4">
-      <div className="bg-white rounded-lg border border-gray-200 p-4 text-center">
-        <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-        <p className="text-sm text-gray-500">Total équipements</p>
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 text-center">
+        <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.total}</p>
+        <p className="text-xs sm:text-sm text-gray-500">Total équipements</p>
       </div>
-      <div className="bg-blue-50 rounded-lg border border-blue-200 p-4 text-center">
-        <p className="text-2xl font-bold text-blue-900">{stats.pa}</p>
-        <p className="text-sm text-blue-600">Pression Auxiliaire</p>
-      </div>
-      <div className="bg-green-50 rounded-lg border border-green-200 p-4 text-center">
-        <p className="text-2xl font-bold text-green-900">{stats.pp}</p>
-        <p className="text-sm text-green-600">Pression Permanente</p>
-      </div>
-      <div className="bg-orange-50 rounded-lg border border-orange-200 p-4 text-center">
-        <p className="text-2xl font-bold text-orange-900">{stats.alarm}</p>
-        <p className="text-sm text-orange-600">Alarmes</p>
-      </div>
-      <div className="bg-red-50 rounded-lg border border-red-200 p-4 text-center">
-        <p className="text-2xl font-bold text-red-900">
+      <div className="bg-red-50 rounded-lg border border-red-200 p-3 sm:p-4 text-center">
+        <p className="text-xl sm:text-2xl font-bold text-red-900">
           {stats.validityExpired}
         </p>
-        <p className="text-sm text-red-600">Matériels expirés</p>
+        <p className="text-xs sm:text-sm text-red-600">Matériels expirés</p>
       </div>
-      <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-4 text-center">
-        <p className="text-2xl font-bold text-yellow-900">
-          {stats.validityExpiringSoon}
-        </p>
-        <p className="text-sm text-yellow-600">Expirent bientôt</p>
-      </div>
-      <div className="bg-red-50 rounded-lg border border-red-200 p-4 text-center">
-        <p className="text-2xl font-bold text-red-900">
+      <div className="bg-orange-50 rounded-lg border border-orange-200 p-3 sm:p-4 text-center">
+        <p className="text-xl sm:text-2xl font-bold text-orange-900">
           {stats.controlExpired}
         </p>
-        <p className="text-sm text-red-600">Contrôles en retard</p>
+        <p className="text-xs sm:text-sm text-orange-600">Contrôles en retard</p>
       </div>
-      <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-4 text-center">
-        <p className="text-2xl font-bold text-yellow-900">
-          {stats.controlDueSoon}
-        </p>
-        <p className="text-sm text-yellow-600">Contrôles bientôt</p>
-      </div>
-      <div className="bg-purple-50 rounded-lg border border-purple-200 p-4 text-center">
-        <p className="text-2xl font-bold text-purple-900">
+      <div className="bg-purple-50 rounded-lg border border-purple-200 p-3 sm:p-4 text-center">
+        <p className="text-xl sm:text-2xl font-bold text-purple-900">
           {stats.rechargeExpired}
         </p>
-        <p className="text-sm text-purple-600">Recharges en retard</p>
-      </div>
-      <div className="bg-indigo-50 rounded-lg border border-indigo-200 p-4 text-center">
-        <p className="text-2xl font-bold text-indigo-900">
-          {stats.rechargeDueSoon}
-        </p>
-        <p className="text-sm text-indigo-600">Recharges bientôt</p>
+        <p className="text-xs sm:text-sm text-purple-600">Recharges en retard</p>
       </div>
     </div>
   );
@@ -496,6 +451,7 @@ export default function ClientDetailPage({
         global: globalStatus,
         validity: globalStatus.validity,
         control: globalStatus.control,
+        recharge: globalStatus.recharge,
         nameClasses: getEquipmentNameClasses(equipment),
         cardClasses: getEquipmentCardClasses(equipment),
       });
@@ -718,29 +674,29 @@ export default function ClientDetailPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* En-tête avec navigation */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-4">
               <Link
                 href="/clients"
-                className="inline-flex items-center p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="inline-flex items-center p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
               >
                 <ArrowLeftIcon className="h-5 w-5" />
               </Link>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">
                   {client.name}
                 </h1>
-                <p className="text-gray-600">{client.location}</p>
+                <p className="text-gray-600 text-sm sm:text-base truncate">{client.location}</p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
               <button
                 onClick={handleEditClient}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
               >
                 <PencilIcon className="h-4 w-4 mr-2" />
                 Modifier
@@ -748,7 +704,7 @@ export default function ClientDetailPage({
               <button
                 onClick={handleDeleteClient}
                 disabled={client.equipments.length > 0}
-                className="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 title={
                   client.equipments.length > 0
                     ? "Supprimez d'abord tous les équipements"
@@ -756,37 +712,39 @@ export default function ClientDetailPage({
                 }
               >
                 <TrashIcon className="h-4 w-4 mr-2" />
-                Supprimer
+                <span className="hidden sm:inline">Supprimer</span>
+                <span className="sm:hidden">Suppr.</span>
               </button>
             </div>
           </div>
         </div>
 
         {/* Informations client */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <ClientInfoCard client={client} onEdit={handleEditClient} />
         </div>
 
         {/* Bouton de mise à jour des vérifications */}
         {client.equipments.length > 0 && (
-          <div className="mb-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+          <div className="mb-6 sm:mb-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-1">
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-1">
                     Mise à jour des vérifications
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs sm:text-sm text-gray-600">
                     Mettre à jour la date de dernière vérification de tous les
                     équipements en une seule fois
                   </p>
                 </div>
                 <button
                   onClick={handleUpdateVerifications}
-                  className="inline-flex items-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
+                  className="inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
                 >
                   <CalendarIcon className="h-4 w-4 mr-2" />
-                  Mettre à jour toutes les vérifications
+                  <span className="hidden sm:inline">Mettre à jour toutes les vérifications</span>
+                  <span className="sm:hidden">Mettre à jour</span>
                 </button>
               </div>
             </div>
@@ -794,29 +752,30 @@ export default function ClientDetailPage({
         )}
 
         {/* Statistiques des équipements */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <EquipmentStats equipments={client.equipments} />
         </div>
 
         {/* Section équipements */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
               Équipements ({client.equipments.length})
             </h2>
             <button
               onClick={handleAddEquipment}
-              className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+              className="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
             >
               <PlusIcon className="h-4 w-4 mr-2" />
-              Ajouter un équipement
+              <span className="hidden sm:inline">Ajouter un équipement</span>
+              <span className="sm:hidden">Ajouter</span>
             </button>
           </div>
 
           {client.equipments.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-12 text-center">
               <p className="text-gray-500 text-lg mb-2">Aucun équipement</p>
-              <p className="text-gray-400 mb-4">
+              <p className="text-gray-400 mb-4 text-sm sm:text-base">
                 Ce client n'a pas encore d'équipement enregistré
               </p>
               <button
@@ -828,7 +787,7 @@ export default function ClientDetailPage({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4 sm:gap-6">
               {client.equipments.map((equipment) => {
                 const status = equipmentStatuses.get(equipment.id);
                 return (
@@ -904,7 +863,7 @@ export default function ClientDetailPage({
 
                     <div className="space-y-2 text-sm">
                       {/* Affichage conditionnel selon le type d'équipement */}
-                      {equipment.material.type === "PA" ? (
+                      {equipment.material.type === "PA" && (
                         /* Affichage pour les équipements PA - Prochaine recharge */
                         <div>
                           <span className="text-gray-500">
@@ -936,31 +895,6 @@ export default function ClientDetailPage({
                             )}
                           </span>
                         </div>
-                      ) : (
-                        /* Affichage pour les autres équipements - Mise en service et Dernière vérification */
-                        <>
-                          <div>
-                            <span className="text-gray-500">Mise en service:</span>
-                            <span className="ml-2 text-gray-900">
-                              {new Date(
-                                equipment.commissioningDate
-                              ).toLocaleDateString("fr-FR")}
-                            </span>
-                          </div>
-
-                          {equipment.lastVerificationDate && (
-                            <div>
-                              <span className="text-gray-500">
-                                Dernière vérification:
-                              </span>
-                              <span className="ml-2 text-gray-900">
-                                {new Date(
-                                  equipment.lastVerificationDate
-                                ).toLocaleDateString("fr-FR")}
-                              </span>
-                            </div>
-                          )}
-                        </>
                       )}
 
                       {/* Informations de validité */}
