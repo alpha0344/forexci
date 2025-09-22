@@ -500,7 +500,7 @@ export default function HomePage() {
                     <span className="text-white text-xs font-bold">PA</span>
                   </div>
                   <span className="text-sm sm:text-base font-medium text-gray-900">
-                    Portables Autonomes
+                    Pressions Auxiliaires
                   </span>
                 </div>
                 <span className="text-lg sm:text-xl font-bold text-blue-600">
@@ -514,7 +514,7 @@ export default function HomePage() {
                     <span className="text-white text-xs font-bold">PP</span>
                   </div>
                   <span className="text-sm sm:text-base font-medium text-gray-900">
-                    Portables Portés
+                    Pressions Permanentes
                   </span>
                 </div>
                 <span className="text-lg sm:text-xl font-bold text-orange-600">
