@@ -386,7 +386,7 @@ export default function HomePage() {
             icon={UserGroupIcon}
             variant="primary"
             trend={
-              0
+              0 && stats
                 ? {
                     value: Math.round(
                       (0 / Math.max(stats.clients.total, 1)) * 100,

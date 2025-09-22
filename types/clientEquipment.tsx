@@ -1,3 +1,5 @@
+import { Material } from './material'; // Adjust the path as needed
+
 export enum RechargeType {
   WATER_ADD = "WATER_ADD",
   POWDER = "POWDER",
