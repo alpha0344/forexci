@@ -11,6 +11,7 @@ datasource db {
 enum MaterialType {
   PA      // Pression Auxiliaire
   PP      // Pression permanente
+  CO2     // CO2
   ALARM   // Alarme
 }
 
@@ -50,6 +51,7 @@ model Client {
   location        String   // Localisation/adresse
   contactName     String   // Nom du contact principal
   phone           String?  // Numéro de téléphone du client
+  email           String?  // Email du client
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
