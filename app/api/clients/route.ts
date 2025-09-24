@@ -27,6 +27,16 @@ const createClientSchema = z.object({
       const phoneRegex = /^(?:\+33|0)[1-9](?:[0-9]{8})$/;
       return phoneRegex.test(phone.replace(/\s/g, ""));
     }, "Format de téléphone invalide"),
+  email: z
+    .string()
+    .optional()
+    .refine((email: string | undefined) => {
+      if (!email) return true; // Email optionnel
+      // Validation basique du format email
+      const emailRegex =
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      return emailRegex.test(email);
+    }, "Format d'email invalide"),
 });
 
 /**
@@ -88,7 +98,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, location, contactName, phone } = validationResult.data;
+    const { name, location, contactName, email, phone } = validationResult.data;
 
     // Vérifier si un client avec le même nom et localisation existe déjà
     const existingClient = await prisma.client.findFirst({
@@ -113,6 +123,7 @@ export async function POST(request: NextRequest) {
         name: name.trim(),
         location: location.trim(),
         contactName: contactName.trim(),
+        ...(email && { email: email.trim() }),
         ...(phone && { phone: phone.trim() }),
       },
       include: {

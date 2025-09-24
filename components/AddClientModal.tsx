@@ -13,6 +13,7 @@ interface FormData {
   name: string;
   location: string;
   contactName: string;
+  email: string;
   phone: string;
 }
 
@@ -20,6 +21,7 @@ interface FormErrors {
   name?: string;
   location?: string;
   contactName?: string;
+  email?: string;
   phone?: string;
   general?: string;
 }
@@ -33,6 +35,7 @@ export default function AddClientModal({
     name: "",
     location: "",
     contactName: "",
+    email: "",
     phone: "",
   });
 
@@ -45,6 +48,7 @@ export default function AddClientModal({
       name: "",
       location: "",
       contactName: "",
+      email: "",
       phone: "",
     });
     setErrors({});
@@ -71,6 +75,13 @@ export default function AddClientModal({
 
     if (!formData.contactName.trim()) {
       newErrors.contactName = "Le nom du contact est requis";
+    }
+
+    if (
+      formData.email &&
+      !formData.email.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)
+    ) {
+      newErrors.email = "Le format de l'email est invalide";
     }
 
     if (
@@ -103,6 +114,7 @@ export default function AddClientModal({
           name: formData.name.trim(),
           location: formData.location.trim(),
           contactName: formData.contactName.trim(),
+          email: formData.email.trim() || undefined,
           phone: formData.phone.trim() || undefined,
         }),
       });
@@ -247,6 +259,32 @@ export default function AddClientModal({
               {errors.contactName && (
                 <p className="mt-1 text-sm text-red-600">
                   {errors.contactName}
+                </p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Email
+              </label>
+              <input
+                type="text"
+                id="email"
+                value={formData.email}
+                onChange={handleInputChange("email")}
+                className={`block w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                  errors.email ? "border-red-300" : "border-gray-300"
+                }`}
+                placeholder="ex: jean.dupont@example.com"
+                disabled={isSubmitting}
+              />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.email}
                 </p>
               )}
             </div>

@@ -8,6 +8,7 @@ interface Client {
   name: string;
   location: string;
   contactName: string;
+  email?: string | null;
   phone?: string | null;
 }
 
@@ -22,6 +23,7 @@ interface FormData {
   name: string;
   location: string;
   contactName: string;
+  email?: string | null;
   phone: string;
 }
 
@@ -29,6 +31,7 @@ interface FormErrors {
   name?: string;
   location?: string;
   contactName?: string;
+  email?: string | null;
   phone?: string;
   general?: string;
 }
@@ -43,6 +46,7 @@ export default function EditClientModal({
     name: "",
     location: "",
     contactName: "",
+    email: "",
     phone: "",
   });
 
@@ -56,6 +60,7 @@ export default function EditClientModal({
         name: client.name,
         location: client.location,
         contactName: client.contactName,
+        email: client.email || "",
         phone: client.phone || "",
       });
       setErrors({});
@@ -68,6 +73,7 @@ export default function EditClientModal({
       name: "",
       location: "",
       contactName: "",
+      email: "",
       phone: "",
     });
     setErrors({});
@@ -94,6 +100,10 @@ export default function EditClientModal({
 
     if (!formData.contactName.trim()) {
       newErrors.contactName = "Le nom du contact est requis";
+    }
+
+    if (formData.email && !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      newErrors.email = "Format d'email invalide (ex: user@example.com)";
     }
 
     if (
@@ -128,6 +138,9 @@ export default function EditClientModal({
       }
       if (formData.contactName.trim() !== client.contactName) {
         updateData.contactName = formData.contactName.trim();
+      }
+      if (formData.email.trim() !== (client.email || "")) {
+        updateData.email = formData.email.trim() || undefined;
       }
       if (formData.phone.trim() !== (client.phone || "")) {
         updateData.phone = formData.phone.trim() || undefined;
@@ -287,6 +300,32 @@ export default function EditClientModal({
               {errors.contactName && (
                 <p className="mt-1 text-sm text-red-600">
                   {errors.contactName}
+                </p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Email
+              </label>
+              <input
+                type="text"
+                id="email"
+                value={formData.email}
+                onChange={handleInputChange("email")}
+                className={`block w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                  errors.email ? "border-red-300" : "border-gray-300"
+                }`}
+                placeholder="ex: jean.dupont@example.com"
+                disabled={isSubmitting}
+              />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.email}
                 </p>
               )}
             </div>

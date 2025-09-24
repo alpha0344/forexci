@@ -21,6 +21,16 @@ const updateClientSchema = z.object({
     .min(1, "Le nom de contact est requis")
     .max(100, "Le nom de contact ne peut pas dépasser 100 caractères")
     .optional(),
+  email: z
+    .string()
+    .optional()
+    .refine((email: string | undefined) => {
+      if (!email) return true; // Email optionnel
+      // Validation basique du format email
+      const emailRegex =
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      return emailRegex.test(email);
+    }, "Format d'email invalide"),
   phone: z
     .string()
     .optional()
@@ -141,9 +151,10 @@ export async function PUT(
     if (updateData.location) updateData.location = updateData.location.trim();
     if (updateData.contactName)
       updateData.contactName = updateData.contactName.trim();
-    if (updateData.phone !== undefined) {
+    if (updateData.email !== undefined)
+      updateData.email = updateData.email ? updateData.email.trim() : undefined;
+    if (updateData.phone !== undefined)
       updateData.phone = updateData.phone ? updateData.phone.trim() : undefined;
-    }
 
     // Vérifier si un autre client avec le même nom et localisation existe déjà
     if (updateData.name && updateData.location) {

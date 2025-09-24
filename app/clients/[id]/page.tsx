@@ -49,6 +49,7 @@ interface Client {
   name: string;
   location: string;
   contactName: string;
+  email?: string | null;
   phone?: string | null;
   equipments: ClientEquipment[];
   createdAt: string;
@@ -327,6 +328,13 @@ const ClientInfoCard: React.FC<ClientInfoCardProps> = ({ client, onEdit }) => {
             <div>
               <p className="text-sm font-medium text-gray-500">Localisation</p>
               <p className="text-gray-900">{client.location}</p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-3">
+            <UserIcon className="h-5 w-5 text-gray-400 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-gray-500">Email</p>
+              <p className="text-gray-900">{client.email || "Non renseigné"}</p>
             </div>
           </div>
         </div>
