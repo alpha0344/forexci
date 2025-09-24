@@ -23,7 +23,7 @@ interface FormData {
   name: string;
   location: string;
   contactName: string;
-  email?: string | null;
+  email?: string;
   phone: string;
 }
 
@@ -31,7 +31,7 @@ interface FormErrors {
   name?: string;
   location?: string;
   contactName?: string;
-  email?: string | null;
+  email?: string;
   phone?: string;
   general?: string;
 }
@@ -139,8 +139,8 @@ export default function EditClientModal({
       if (formData.contactName.trim() !== client.contactName) {
         updateData.contactName = formData.contactName.trim();
       }
-      if (formData.email.trim() !== (client.email || "")) {
-        updateData.email = formData.email.trim() || undefined;
+      if ((formData.email || "").trim() !== (client.email || "")) {
+        updateData.email = formData.email?.trim() || undefined;
       }
       if (formData.phone.trim() !== (client.phone || "")) {
         updateData.phone = formData.phone.trim() || undefined;

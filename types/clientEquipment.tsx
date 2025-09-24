@@ -12,6 +12,7 @@ export interface Client {
   name: string;
   location: string;
   contactName: string;
+  contactEmail: string;
   phone?: string;
   createdAt: Date;
   updatedAt: Date;

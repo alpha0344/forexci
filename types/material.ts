@@ -6,6 +6,7 @@
 export enum MaterialType {
   PA = "PA", // Pression Auxiliaire
   PP = "PP", // Pression permanente
+  CO2 = "CO2", // CO2
   ALARM = "ALARM", // Alarme
 }
 
@@ -23,6 +24,7 @@ export interface Material {
 export const MaterialTypeLabels: Record<MaterialType, string> = {
   [MaterialType.PA]: "Pression Auxiliaire",
   [MaterialType.PP]: "Pression permanente",
+  [MaterialType.CO2]: "CO2",
   [MaterialType.ALARM]: "Alarme",
 };
 
