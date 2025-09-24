@@ -6,7 +6,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 // Types basés sur votre schéma Prisma
 interface Material {
   id: string;
-  type: "PA" | "PP" | "ALARM";
+  type: "PA" | "PP" | "ALARM" | "CO2";
   validityTime: number;
   timeBeforeControl: number;
   timeBeforeReload?: number | null;

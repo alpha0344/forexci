@@ -23,7 +23,7 @@ import {
 
 interface Material {
   id: string;
-  type: "PA" | "PP" | "ALARM";
+  type: "PA" | "PP" | "ALARM" | "CO2";
   validityTime: number;
   timeBeforeControl: number;
   timeBeforeReload?: number | null;

@@ -26,7 +26,7 @@ import {
 // Types basés sur votre schéma Prisma
 interface Material {
   id: string;
-  type: "PA" | "PP" | "ALARM";
+  type: "PA" | "PP" | "ALARM" | "CO2";
   validityTime: number;
   timeBeforeControl: number;
   timeBeforeReload?: number | null;
@@ -875,6 +875,8 @@ export default function ClientDetailPage({
                             ? "bg-blue-100 text-blue-800"
                             : equipment.material.type === "PP"
                               ? "bg-green-100 text-green-800"
+                              : equipment.material.type === "CO2"
+                                ? "bg-purple-100 text-purple-800"
                               : "bg-orange-100 text-orange-800"
                         }`}
                       >

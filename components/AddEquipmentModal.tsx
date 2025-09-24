@@ -6,7 +6,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 // Types basés sur votre schéma Prisma
 interface Material {
   id: string;
-  type: "PA" | "PP" | "ALARM";
+  type: "PA" | "PP" | "CO2" | "ALARM";
   validityTime: number;
   timeBeforeControl: number;
   timeBeforeReload?: number | null;
@@ -35,10 +35,10 @@ interface FormData {
   materialId: string;
   number: string;
   commissioningDate: string;
-  lastVerificationDate: string; // Pour PP
+  lastVerificationDate: string; // Pour PP et CO2
   lastRechargeDate: string; // Pour PA
   rechargeType: "WATER_ADD" | "POWDER" | ""; // Pour PA
-  volume: string; // Pour PP
+  volume: string; // Pour PP et CO2
   notes: string;
 }
 
@@ -180,7 +180,17 @@ export default function AddEquipmentModal({
             }
           }
           break;
-
+        case "CO2":
+          // Pour CO2 : volume requis
+          if (!formData.volume) {
+            newErrors.volume = "Le volume est requis pour les CO2";
+          } else {
+            const volumeValue = parseInt(formData.volume);
+            if (isNaN(volumeValue) || volumeValue <= 0) {
+              newErrors.volume = "Le volume doit être un entier positif";
+            }
+          }
+          break;
         case "PA":
           // Pour PA : volume, lastRechargeDate et rechargeType requis
           if (!formData.volume) {
@@ -241,6 +251,9 @@ export default function AddEquipmentModal({
       if (selectedMaterial) {
         switch (selectedMaterial.type) {
           case "PP":
+            submitData.volume = parseInt(formData.volume);
+            break;
+          case "CO2":
             submitData.volume = parseInt(formData.volume);
             break;
 
@@ -488,7 +501,7 @@ export default function AddEquipmentModal({
                   Informations spécifiques - {selectedMaterial.type}
                 </h3>
 
-                {selectedMaterial.type === "PP" && (
+                {(selectedMaterial.type === "PP" || selectedMaterial.type === "CO2") && (
                   <div className="grid grid-cols-1 gap-4">
                     {/* Volume */}
                     <div>

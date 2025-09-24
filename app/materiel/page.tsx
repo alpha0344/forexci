@@ -111,6 +111,8 @@ export default function MaterielPage() {
         return <div className="text-red-500">🧯</div>;
       case "PP":
         return <div className="text-red-500">🧯</div>;
+      case "CO2":
+        return <div className="text-red-500">🧯</div>;
       case "ALARM":
         return <Bell className="w-6 h-6" />;
       default:
@@ -121,6 +123,7 @@ export default function MaterielPage() {
   const MaterialTypeLabels = {
     PA: "Pression Auxiliaire",
     PP: "Pression Permanente",
+    CO2: "Dioxyde de Carbone",
     ALARM: "Alarme",
   };
 

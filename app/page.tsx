@@ -35,6 +35,7 @@ interface DashboardStats {
     total: number;
     paTypes: number;
     ppTypes: number;
+    co2Types: number;
     alarmTypes: number;
   };
 }
@@ -298,6 +299,7 @@ export default function HomePage() {
         // Calcul des statistiques des matériaux
         const paTypes = materials.filter((m: any) => m.type === "PA").length;
         const ppTypes = materials.filter((m: any) => m.type === "PP").length;
+        const co2Types = materials.filter((m: any) => m.type === "CO2").length;
         const alarmTypes = materials.filter(
           (m: any) => m.type === "ALARM",
         ).length;
@@ -318,6 +320,7 @@ export default function HomePage() {
             total: materials.length,
             paTypes,
             ppTypes,
+            co2Types,
             alarmTypes,
           },
         });
@@ -521,6 +524,21 @@ export default function HomePage() {
                   {stats?.materials.ppTypes || 0}
                 </span>
               </div>
+
+              <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center mr-3">
+                    <span className="text-white text-xs font-bold">CO2</span>
+                  </div>
+                  <span className="text-sm sm:text-base font-medium text-gray-900">
+                    CO2
+                  </span>
+                </div>
+                <span className="text-lg sm:text-xl font-bold text-yellow-600">
+                  {stats?.materials.co2Types || 0}
+                </span>
+              </div>
+
 
               <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                 <div className="flex items-center">
